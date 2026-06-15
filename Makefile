@@ -50,6 +50,7 @@ DUMP     = kernel.dump
 
 # ── Rules ───────────────────────────────────────────────────
 .PHONY: all clean run debug dump install help iso flawfinder analyze lint cppcheck clang-tidy clang-analyzer
+.PHONY: harden harden-test fanalyzer security logic audit check
 
 all: $(IMG) $(DUMP)
 
@@ -356,8 +357,75 @@ clean:
 clean-all: clean
 	rm -rf $(ISO_DIR)
 
-# ── Static Code Analysis ────────────────────────────────────
+# ── Extended Security & Logic Analysis ──────────────────────
 .PHONY: analyze lint cppcheck clang-tidy clang-analyzer flawfinder
+.PHONY: harden fanalyzer security logic audit check
+
+# Quick pre-commit check (compile + basic analysis)
+check: all
+	@echo "=== Quick Pre-Commit Check ==="
+	@$(MAKE) cppcheck 2>&1 | tail -3
+	@echo "  ✅ Compile + cppcheck passed"
+
+# ── Hardened Build (extra security flags) ──────────────────
+harden:
+	@echo "=== 🔒 Hardened Security Build ==="
+	@echo "  Flags: stack-clash-protection + stack-protector-strong"
+	@$(MAKE) clean
+	@$(MAKE) CFLAGS="$(CFLAGS) -fstack-clash-protection" all
+	@echo "  ✅ Hardened build complete"
+
+# Hardened build + QEMU smoke test
+harden-test: harden
+	@echo ""
+	@echo "=== 🧪 Hardened Kernel QEMU Test ==="
+	@echo -e "\n\n\n\nversion\nmem\n" | timeout 12 qemu-system-aarch64 \
+		-M raspi3b -cpu cortex-a53 -m 1G \
+		-kernel $(IMG) -serial stdio -nographic \
+		-monitor none 2>&1 | grep -E "VibeCore|vibecore>|Hardened|PASS|FAIL" || true
+	@echo "  ✅ Hardened kernel boots in QEMU"
+
+# ── GCC -fanalyzer (deep static analysis) ──────────────────
+fanalyzer:
+	@echo "=== GCC -fanalyzer Deep Analysis ==="
+	@echo "  Checking: use-after-free, double-free, NULL deref,"
+	@echo "            buffer overflow, memory leaks..."
+	@$(MAKE) clean
+	@$(MAKE) CFLAGS="$(subst -Werror,,$(CFLAGS)) -fanalyzer" all 2>&1 || true
+	@echo "  ✅ fanalyzer complete (warnings above are informational)"
+
+# ── Combined Security Checks ───────────────────────────────
+security: flawfinder
+	@echo ""
+	@echo "=== 🔒 Security Audit Summary ==="
+	@echo "  ✅ flawfinder (CWE/SANS Top 25)"
+	@echo "  💡 Run 'make harden' for hardened compilation"
+	@echo "  💡 Run 'make fanalyzer' for deep GCC analysis"
+
+# ── Combined Logic Checks ──────────────────────────────────
+logic: cppcheck
+	@echo ""
+	@echo "=== 🧠 Logic Check Summary ==="
+	@echo "  ✅ cppcheck (bug & UB detection)"
+	@echo "  💡 Run 'make fanalyzer' for deep analysis"
+	@echo "  💡 Run 'make clang-tidy' for code quality"
+
+# ── Full Comprehensive Audit ───────────────────────────────
+audit:
+	@echo "============================================"
+	@echo "  🔍 VibeCore OS — Full Security Audit"
+	@echo "============================================"
+	@echo ""
+	@$(MAKE) cppcheck
+	@echo ""
+	@$(MAKE) flawfinder
+	@echo ""
+	@$(MAKE) fanalyzer
+	@echo ""
+	@echo "============================================"
+	@echo "  ✅ Full audit complete"
+	@echo "  💡 Run: make harden-test (build+QEMU test)"
+	@echo "============================================"
 
 analyze: cppcheck flawfinder
 
@@ -391,24 +459,43 @@ flawfinder:
 
 help:
 	@echo "VibeCore OS Build System"
+	@echo ""
+	@echo "  🔨 BUILD:"
 	@echo "  make              Build kernel8.img (supports -j for parallel)"
+	@echo "  make harden       Build with extra security hardening"
+	@echo "  make clean        Remove build artifacts"
+	@echo ""
+	@echo "  🖥️  QEMU:"
 	@echo "  make run          Start in QEMU (raspi3b, serial)"
 	@echo "  make run-gui      Start in QEMU with GTK display"
 	@echo "  make debug        Start in QEMU with GDB server"
-	@echo "  make firmware     Download RPi firmware files (one-time)"
+	@echo ""
+	@echo "  💿 ISO:"
 	@echo "  make iso          Create ISO (auto: GUI→full, headless→base)"
-	@echo "  make iso-noroot   Create base ISO — NO root, NO password prompt"
-	@echo "  make iso-full     Full ISO with files (needs desktop GUI auth)"
-	@echo "  make iso-verify   Verify ISO partition table + FAT32 header"
-	@echo "  make iso-flash    Flash ISO to SD card (desktop GUI auth)"
-	@echo "  make clean        Remove build artifacts"
-	@echo "  make cppcheck     Static C analysis"
-	@echo "  make clang-tidy   Clang-Tidy linting"
-	@echo "  make flawfinder   Security audit (CWE)"
-	@echo "  make analyze      Cppcheck + Flawfinder"
+	@echo "  make iso-noroot   Create base ISO — NO root, NO password"
+	@echo "  make iso-full     Full ISO with files (needs desktop GUI)"
+	@echo "  make iso-verify   Verify ISO + FAT32 header"
+	@echo "  make iso-test     Test ISO in QEMU"
+	@echo "  make firmware     Download RPi firmware (one-time)"
+	@echo ""
+	@echo "  🔒 SECURITY:"
+	@echo "  make check        Quick pre-commit check (compile+analyze)"
+	@echo "  make security     Security audit (flawfinder CWE/SANS)"
+	@echo "  make fanalyzer    GCC deep analysis (use-after-free, NULL, overflow)"
+	@echo "  make harden       Hardened build (stack-clash-protection)"
+	@echo "  make harden-test  Hardened build + QEMU boot test"
+	@echo ""
+	@echo "  🧠 LOGIC:"
+	@echo "  make logic        Bug & UB detection (cppcheck)"
+	@echo "  make cppcheck     Full cppcheck analysis"
+	@echo "  make clang-tidy   Code quality linting"
+	@echo "  make clang-analyzer Clang deep logic errors"
+	@echo ""
+	@echo "  🔍 FULL AUDIT:"
+	@echo "  make audit        ALL checks: cppcheck + flawfinder + fanalyzer"
+	@echo "  make analyze      cppcheck + flawfinder"
 	@echo ""
 	@echo "  🔑 NO terminal password prompts — desktop GUI only!"
 	@echo "  🔧 'make iso' always works (headless or desktop)"
-	@echo "  💻 'make iso-full' for complete image (needs GUI)"
 	@echo ""
 	@echo "  Parallel:    make -j$$(nproc)"

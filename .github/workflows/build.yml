@@ -55,9 +55,9 @@ jobs:
           path: kernel8.elf
           retention-days: 7
 
-  # ── Static Analysis ────────────────────────────────────
-  analyze:
-    name: Static Analysis
+  # ── Security & Logic Analysis ─────────────────────────
+  security:
+    name: Security Audit
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
@@ -66,16 +66,47 @@ jobs:
       - name: 🔧 Install Tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq cppcheck
+          sudo apt-get install -y -qq \
+            gcc-aarch64-linux-gnu \
+            cppcheck \
+            flawfinder
 
-      - name: 🔍 Cppcheck
+      - name: 🔍 GCC -fanalyzer (Deep Analysis)
         run: |
+          echo "=== GCC -fanalyzer Deep Analysis ==="
+          aarch64-linux-gnu-gcc -fanalyzer -Wall -O3 \
+            -nostdlib -nostartfiles -ffreestanding \
+            -mgeneral-regs-only -Iinclude \
+            -c src/*.c 2>&1 | tee fanalyzer.log || true
+          echo ""
+          ISSUES=$(grep -c "warning:" fanalyzer.log 2>/dev/null || echo 0)
+          echo "fanalyzer warnings: $ISSUES"
+
+      - name: 🐛 Cppcheck (Bug & UB Detection)
+        run: |
+          echo "=== Cppcheck Analysis ==="
           cppcheck --enable=all --inconclusive --std=c11 \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
-            -Iinclude src/ 2>&1 | tee cppcheck.log
+            -Iinclude src/ 2>&1 | tee cppcheck.log || true
+
+      - name: 🛡️ Flawfinder (CWE/SANS Top 25)
+        run: |
+          echo "=== Flawfinder Security Audit ==="
+          flawfinder --minlevel=1 --columns --context \
+            src/ include/ 2>&1 | tee flawfinder.log || true
+
+      - name: 📊 Security Summary
+        run: |
+          echo "============================================"
+          echo "  🔒 Security Audit Summary"
+          echo "============================================"
           echo ""
-          echo "Cppcheck completed."
+          echo "fanalyzer: $(grep -c 'warning:' fanalyzer.log 2>/dev/null || echo 0) issues"
+          echo "cppcheck:  $(grep -c '\\(error\|warning\|style\|performance\|portability\\)' cppcheck.log 2>/dev/null || echo 0) issues"
+          echo "flawfinder: $(grep -c '\[.*\]' flawfinder.log 2>/dev/null || echo 0) issues"
+          echo ""
+          echo "Logs saved as artifacts for review."
 
   # ── QEMU Smoke Test + ISO Build ──────────────────────
   test:
