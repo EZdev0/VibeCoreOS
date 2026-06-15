@@ -96,6 +96,9 @@ bss_done:
      */
     ldr     x0, =__stack_top
     mov     sp, x0
+    /* x0 comes from QEMU as the DTB address in r0/x0 */
+    ldr     x1, =dtb_ptr
+    str     x0, [x1]
 
     /*
      * ── Frame-Pointer initialisieren ──────────────────
@@ -276,3 +279,9 @@ exception_handler_serror:
 kernel_panic_halt:
     wfi
     b       kernel_panic_halt
+
+.section .data
+.balign 8
+.globl dtb_ptr
+dtb_ptr:
+    .quad 0

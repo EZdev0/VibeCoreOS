@@ -63,6 +63,7 @@ void kernel_main(void)
      * Initialized first so we can see error messages.
      */
     uart_init();
+    uart_puts("\r\n[OK] VibeCore OS Kernel Booted!\r\n");
     uart_puts("\n\n");
     uart_puts("╔══════════════════════════════════════════════════╗\n");
     uart_puts("║      VibeCore OS 1.0 — \"Photon\" (aarch64)       ║\n");
