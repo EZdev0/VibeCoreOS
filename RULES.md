@@ -34,9 +34,18 @@ Shell und ISO-Build-System — entwickelt und getestet mit KI-Unterstützung (Co
 - `make harden-test` für gehärteten Kernel in QEMU
 
 ### 5. Dokumentation IMMER aktuell halten
-- README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md
+- README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md, BRAINSTORM.md
 - Bei JEDER signifikanten Änderung: Changelog in README.md updaten
 - Neue Befehle/Targets: `make help`-Text updaten
+
+### 6. Projekt-Ordnung ZWINGEND einhalten
+- **KEINE** Build-Artefakte im Root-Verzeichnis! `make clean` nach jedem Build
+- **KEINE** `.o`/`.d` Dateien außerhalb von `build/` oder temporär in `src/`
+- **KEINE** losen Skripte im Root — alle Skripte gehören nach `scripts/`
+- **KEINE** Duplikate! `doc/` wurde gelöscht — es gibt nur EINE Version jeder Doku
+- Leere Ordner (`fonts/`) sofort löschen oder befüllen
+- Nach JEDER Session: `make clean && git status` — Root MUSS sauber sein
+- Vor JEDEM Commit: Root aufräumen, `.gitignore` prüfen, `git status` kontrollieren
 
 ---
 
@@ -179,6 +188,8 @@ Shell und ISO-Build-System — entwickelt und getestet mit KI-Unterstützung (Co
 | 8 | `make install` ohne SD-Karte | Nur für echtes Flashen |
 | 9 | Ohne QEMU-Test commiten | `make run` muss funktionieren |
 | 10 | Doku veralten lassen | IMMER aktuell halten |
+| 11 | Build-Artefakte im Root liegen lassen | `make clean` nach jedem Build, Root MUSS sauber sein |
+| 12 | Lose Skripte oder Duplikate im Root | Alles in `scripts/`, keine doppelten Dateien |
 
 ---
 
@@ -195,15 +206,14 @@ Vibe_Core_Labor/
 ├── linker.ld              ← Memory-Map
 ├── config.txt             ← RPi Boot-Config
 ├── .gitignore             ← Build-Artefakte ignoriert
+├── BRAINSTORM.md           ← Roadmap, Ideen, Vision
 ├── .github/workflows/     ← CI/CD (build.yml)
-├── scripts/
+├── scripts/               ← ALLE Skripte (KEINE losen Skripte!)
 │   ├── auth-helper.sh     ← GUI-Auth (zenity/pkexec, KEIN Terminal!)
 │   └── mk-bootmbr.py      ← MBR-Boot-Code Generator
 ├── src/                   ← Kernel (22 Dateien)
 ├── include/               ← Header (22 Dateien)
-├── build/                 ← ISO-Output (.gitignored)
-├── doc/                   ← Zusatz-Doku
-└── fonts/                 ← Fonts
+└── build/                 ← Build-Output (.gitignored!)
 ```
 
 ---
@@ -235,6 +245,8 @@ Vibe_Core_Labor/
 5. DOKU + COMMIT
    ├── README.md Changelog updaten
    ├── RULES.md bei neuen Regeln
+   ├── make clean         ← Root aufräumen!
+   ├── git status         ← Prüfen: keine .o/.d im Root
    └── git commit + push
 ```
 
@@ -248,6 +260,8 @@ Vibe_Core_Labor/
 - [ ] `make harden-test` → Gehärteter Kernel bootet
 - [ ] Keine sensitiven Daten im Diff
 - [ ] `.gitignore` aktuell
+- [ ] **Root sauber**: keine `.o`, `.d`, `vibecore.iso` im Root
+- [ ] **Keine Duplikate**: JEDE Datei existiert NUR ein Mal
 - [ ] Keine `sudo`/`su` im Code
 - [ ] Stack-Canary intakt (`-fstack-protector-strong`)
 - [ ] `-mstrict-align` aktiv

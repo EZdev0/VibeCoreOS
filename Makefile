@@ -351,6 +351,7 @@ iso-flash: iso
 
 clean:
 	rm -f $(OBJS) $(DEPS) $(TARGET) $(IMG) $(MAP) $(DUMP)
+	rm -f *.o *.d                              # Root-Schutz: falls jemand im Root kompiliert hat
 	rm -f $(ISO_IMG) $(ISO_DIR)/vibecore.img  # .iso (current) + legacy .img
 
 #   Clean everything including build directory

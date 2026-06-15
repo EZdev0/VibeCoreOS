@@ -99,10 +99,11 @@ Vibe_Core_Labor/
 ├── Makefile                   ← Build-System (parallel, auth, ISO)
 ├── linker.ld                  ← Linker-Script (Memory-Map)
 ├── config.txt                 ← RPi Boot-Konfiguration
+├── BRAINSTORM.md             ← Roadmap, Ideen & Zukunftsvision
 ├── .github/                   ← GitHub Actions CI/CD
 │   └── workflows/
 │       └── build.yml          ← Build, Analyze, QEMU-Test, ISO
-├── scripts/
+├── scripts/                   ← ALLE Skripte & Tools
 │   ├── auth-helper.sh         ← Desktop-GUI Passwort-Popup (zenity/pkexec)
 │   └── mk-bootmbr.py          ← MBR-Boot-Code Generator (VM-Kompatibilität)
 ├── src/                       ← Kernel-Quellcode (22 Dateien)
@@ -139,8 +140,6 @@ Vibe_Core_Labor/
 │   ├── bootcode.bin           ← RPi GPU Bootloader (52 KB)
 │   ├── start.elf              ← RPi GPU Firmware (2.9 MB)
 │   └── fixup.dat              ← GPU Speicher-Konfiguration (7 KB)
-└── doc/
-    └── ARCHITECTURE.md        ← Detaillierte Architektur-Doku
 ```
 
 ---
@@ -373,7 +372,7 @@ zenity                         # GUI-Passwort-Dialog
 | [TESTING.md](TESTING.md) | Test-Pyramide: Kompilierung, Analyse, QEMU, Hardware |
 | [RULES.md](RULES.md) | Projekt-Regeln für Codebuff/Buffy KI-Agent |
 | [Jules.md](Jules.md) | Regeln für Google's Jules AI Agent |
-| [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) | Detaillierte Architektur-Referenz |
+| [BRAINSTORM.md](BRAINSTORM.md) | Roadmap, Ideen & Zukunftsvision |
 
 ---
 

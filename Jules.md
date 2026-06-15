@@ -41,6 +41,7 @@ damit er korrekt, sicher und effizient am VibeCore OS Projekt arbeiten kann.
 - `make run` QEMU Boot-Test
 - Code-Review einholen
 - Dokumentation updaten
+- **`make clean` + `git status` → Root MUSS sauber sein!**
 
 ---
 
@@ -58,6 +59,8 @@ damit er korrekt, sicher und effizient am VibeCore OS Projekt arbeiten kann.
 | 8 | **`make install` ohne SD-Karte** | Nur für echtes Flashen auf Hardware |
 | 9 | **Ohne QEMU-Test commiten** | `make run` MUSS Shell-Prompt erreichen |
 | 10 | **Dokumentation veralten lassen** | IMMER aktuell halten! |
+| 11 | **Build-Artefakte im Root liegen lassen** | `make clean` nach jedem Build. Root MUSS sauber sein! |
+| 12 | **Lose Dateien oder Duplikate** | Alles hat seinen Platz — Skripte in `scripts/`, keine doppelten Docs |
 
 ---
 
@@ -112,7 +115,10 @@ damit er korrekt, sicher und effizient am VibeCore OS Projekt arbeiten kann.
 □ TESTING.md (bei neuen Test-Methoden)
 □ RULES.md (bei neuen Regeln/Tools)
 □ Jules.md (bei neuen Jules-Regeln)
+□ BRAINSTORM.md (bei neuen Ideen/Roadmap-Änderungen)
 □ make help-Text (bei neuen Targets)
+□ make clean              ← Root aufräumen!
+□ git status              ← Prüfen: keine .o/.d im Root!
 □ git add -A
 □ git commit -m "Bereich: Beschreibung"
 □ git push origin master
@@ -199,6 +205,7 @@ make debug            # GDB Debug-Server (:1234)
 | `Makefile` | Build-System | `make help` updaten |
 | `scripts/auth-helper.sh` | GUI-Auth | KEIN Terminal-Fallback! |
 | `scripts/mk-bootmbr.py` | MBR Generator | `make iso-verify` testen |
+| `BRAINSTORM.md` | Roadmap & Ideen | Bei neuen Features/Zielen |
 | `.github/workflows/build.yml` | CI/CD | GH Actions prüfen |
 
 ---
@@ -239,6 +246,7 @@ make debug            # GDB Debug-Server (:1234)
 □ make harden-test                 → Gehärteter Kernel bootet
 □ Keine sensitiven Daten im Diff
 □ .gitignore aktuell
+□ Root sauber: keine .o, .d, Duplikate im Root!
 □ Kein sudo/su im Code
 □ Stack-Canary intakt (-fstack-protector-strong)
 □ -mstrict-align aktiv

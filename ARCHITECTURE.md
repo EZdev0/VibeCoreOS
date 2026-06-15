@@ -285,6 +285,7 @@ Vibe_Core_Labor/
 ├── README.md               ← Project overview & quick start
 ├── RULES.md                ← Rules for Codebuff/Buffy AI agent
 ├── Jules.md                ← Rules for Google Jules AI agent
+├── BRAINSTORM.md           ← Roadmap, ideas & future vision
 ├── ARCHITECTURE.md         ← This file — architecture docs
 ├── TESTING.md              ← Testing guide & CI pipeline
 ├── Makefile                ← Build system (parallel, auth, ISO)
@@ -330,8 +331,6 @@ Vibe_Core_Labor/
 │   ├── bootcode.bin         ← RPi GPU bootloader
 │   ├── start.elf            ← RPi GPU firmware
 │   └── fixup.dat            ← GPU memory config
-└── doc/
-    └── ARCHITECTURE.md     ← German-to-English architecture doc
 ```
 
 ---
@@ -361,4 +360,4 @@ Status: [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workfl
 - [TESTING.md](TESTING.md) — Test pyramid, CI pipeline, known limitations
 - [RULES.md](RULES.md) — Rules for Codebuff/Buffy AI agent
 - [Jules.md](Jules.md) — Rules for Google Jules AI agent
-- [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) — Detailed German-to-English architecture reference
+- [BRAINSTORM.md](BRAINSTORM.md) — Roadmap, ideas & future vision

@@ -1,9 +1,19 @@
 .worktrees/
 build/
-vibecore.iso
+
+# Build artifacts (NO .o/.d files in ROOT!)
 *.o
 *.d
+
+# Kernel output
 kernel8.elf
 kernel8.img
 kernel.map
 kernel.dump
+
+# ISO output
+vibecore.iso
+*.iso
+
+# Legacy
+vibecore.img
