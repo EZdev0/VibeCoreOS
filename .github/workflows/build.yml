@@ -31,7 +31,7 @@ jobs:
           aarch64-linux-gnu-ld --version | head -1
 
       - name: 🏗️ Build
-        run: make clean && make -j$(nproc)
+        run: make clean && make BOARD=virt -j$(nproc)
 
       - name: 📊 Kernel Info
         run: |
@@ -137,7 +137,7 @@ jobs:
           echo "Booting VibeCore OS in QEMU..."
           echo -e "\n\n\n\nversion\nmem\n" | \
             timeout 30 qemu-system-aarch64 \
-              -M raspi3b \
+              -M virt,gic-version=3 \
               -cpu cortex-a53 \
               -m 1G \
               -kernel kernel8.img \
