@@ -39,7 +39,7 @@ jobs:
           file kernel8.img
           echo ""
           echo "Sections:"
-          aarch64-linux-gnu-objdump -h kernel8.elf 2>/dev/null | head -20 || true
+          aarch64-linux-gnu-objdump -h kernel.elf 2>/dev/null | head -20 || true
 
       - name: 📦 Upload kernel8.img
         uses: actions/upload-artifact@v4
@@ -48,11 +48,11 @@ jobs:
           path: kernel8.img
           retention-days: 30
 
-      - name: 📦 Upload kernel8.elf (Debug)
+      - name: 📦 Upload kernel.elf (Debug)
         uses: actions/upload-artifact@v4
         with:
-          name: kernel8-elf
-          path: kernel8.elf
+          name: kernel-elf
+          path: kernel.elf
           retention-days: 7
 
   # ── Security & Logic Analysis ─────────────────────────

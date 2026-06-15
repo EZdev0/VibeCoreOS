@@ -29,3 +29,8 @@ This is the root AGENTS.md for VibeCore OS. It defines the global architecture, 
 - `src/AGENTS.md`: Source code rules, kernel structure, architecture isolation, and subsystems.
 - `include/AGENTS.md`: Header structure, hardware peripheral definitions, and type safety.
 - `scripts/AGENTS.md`: Build scripts, authorization helpers, and boot code generators.
+
+## Roadmap & Brainstorming Alignment
+- Target State: Expand the 62 KB kernel capabilities to support a robust boot mechanism (Custom Bootloader) without breaking the existing GUI, Scheduler, and Storage systems.
+- Immediate Priority: KVM/QEMU direct kernel boot (`virt` board) and multi-arch capability (`x86`, `aarch64`).
+- MMU optimization is critical for next stages but currently disabled due to MMIO cache bugs.
