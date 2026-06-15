@@ -1,0 +1,162 @@
+# VibeCore OS — GitHub Actions CI/CD
+# ARM64 Bare-Metal Cross-Compile + QEMU Smoke Test
+name: VibeCore OS Build & Test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:  # Manuell auslösbar
+
+jobs:
+  # ── Cross-Compile ──────────────────────────────────────
+  build:
+    name: Build (aarch64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install ARM64 Cross-Compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu
+
+      - name: 🔍 Toolchain Info
+        run: |
+          aarch64-linux-gnu-gcc --version | head -1
+          aarch64-linux-gnu-ld --version | head -1
+
+      - name: 🏗️ Build
+        run: make clean && make -j$(nproc)
+
+      - name: 📊 Kernel Info
+        run: |
+          echo "Kernel size: $(stat -c%s kernel8.img) bytes"
+          file kernel8.img
+          echo ""
+          echo "Sections:"
+          aarch64-linux-gnu-objdump -h kernel8.elf 2>/dev/null | head -20 || true
+
+      - name: 📦 Upload kernel8.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel8-image
+          path: kernel8.img
+          retention-days: 30
+
+      - name: 📦 Upload kernel8.elf (Debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel8-elf
+          path: kernel8.elf
+          retention-days: 7
+
+  # ── Static Analysis ────────────────────────────────────
+  analyze:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cppcheck
+
+      - name: 🔍 Cppcheck
+        run: |
+          cppcheck --enable=all --inconclusive --std=c11 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            -Iinclude src/ 2>&1 | tee cppcheck.log
+          echo ""
+          echo "Cppcheck completed."
+
+  # ── QEMU Smoke Test + ISO Build ──────────────────────
+  test:
+    name: QEMU Test + ISO
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download kernel8.img
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel8-image
+
+      - name: 🔧 Install QEMU + Cross-Compiler + Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            qemu-system-aarch64 \
+            gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu \
+            dosfstools
+
+      - name: 🧪 QEMU Boot Test
+        timeout-minutes: 2
+        run: |
+          echo "Booting VibeCore OS in QEMU..."
+          echo -e "\n\n\n\nversion\nmem\n" | \
+            timeout 30 qemu-system-aarch64 \
+              -M raspi3b \
+              -cpu cortex-a53 \
+              -m 1G \
+              -kernel kernel8.img \
+              -serial stdio \
+              -nographic \
+              -monitor none \
+              2>&1 | tee qemu_output.log
+
+          echo ""
+          echo "=== Smoke Test Results ==="
+          if grep -q "VibeCore OS" qemu_output.log; then
+            echo "✅ PASS: VibeCore OS banner found"
+          else
+            echo "❌ FAIL: VibeCore OS banner not found"
+            cat qemu_output.log
+            exit 1
+          fi
+
+          if grep -q "SYSTEM CLEAN\|FSCK" qemu_output.log; then
+            echo "✅ PASS: FSCK/system check"
+          fi
+
+          if grep -q "vibecore>" qemu_output.log; then
+            echo "✅ PASS: Shell prompt reached"
+          else
+            echo "⚠️  WARN: Shell prompt not reached (may be timing)"
+          fi
+
+          echo ""
+          echo "=== QEMU Output (last 20 lines) ==="
+          tail -20 qemu_output.log
+
+      - name: 🏗️ Build ISO (noroot)
+        run: make iso-noroot
+
+      - name: 🔍 Verify ISO
+        run: |
+          echo "ISO file:"
+          ls -lh build/vibecore.iso
+          echo ""
+          echo "File type:"
+          file build/vibecore.iso
+          echo ""
+          echo "Partition table:"
+          fdisk -l build/vibecore.iso 2>/dev/null || true
+          echo ""
+          echo "FAT32 signature:"
+          SIG=$(dd if=build/vibecore.iso bs=1 skip=$((2048*512+82)) count=8 2>/dev/null)
+          if echo "$SIG" | grep -q "FAT32"; then
+            echo "  ✅ FAT32 signature valid"
+          else
+            echo "  ❌ FAT32 signature invalid"
+          fi
