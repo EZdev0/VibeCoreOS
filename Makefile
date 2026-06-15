@@ -6,6 +6,9 @@
 #  Auth for root ops:    scripts/auth-helper.sh
 # ============================================================
 
+ARCH ?= aarch64
+BOARD ?= raspi3b
+
 CC       = aarch64-linux-gnu-gcc
 AS       = aarch64-linux-gnu-as
 LD       = aarch64-linux-gnu-ld
@@ -26,7 +29,7 @@ RLIMIT = $(if $(NICE),nice -n $(NICE),)$(if $(IONICE), ionice $(IONICE))
 AUTH     = $(CURDIR)/scripts/auth-helper.sh
 
 # ── Flags ──────────────────────────────────────────────────
-CFLAGS   = -Wall -Wextra -Werror -O3 -nostdlib -nostartfiles \
+CFLAGS   = -Wall -Wextra -D$(shell echo $(BOARD) | tr a-z A-Z) -Werror -O3 -nostdlib -nostartfiles \
            -ffreestanding -mgeneral-regs-only \
            -Iinclude -MMD -MP \
            -fstack-protector-strong -fno-exceptions \
@@ -39,11 +42,14 @@ LDFLAGS  = -nostdlib -T linker.ld -Map kernel.map
 
 # ── Sources ─────────────────────────────────────────────────
 C_SRCS   = $(wildcard src/*.c)
-ASM_SRCS = $(wildcard src/*.S)
+ASM_SRCS = $(wildcard src/arch/$(ARCH)/*.S)
 OBJS     = $(C_SRCS:.c=.o) $(ASM_SRCS:.S=.o)
 DEPS     = $(C_SRCS:.c=.d)
 
-TARGET   = kernel8.elf
+ARCH ?= aarch64
+BOARD ?= raspi3b
+
+TARGET   = kernel.elf
 IMG      = kernel8.img
 MAP      = kernel.map
 DUMP     = kernel.dump

@@ -34,10 +34,21 @@ static volatile bool uart_lock = false;
 
 void uart_init(void)
 {
+#if defined(VIRT)
+    /* Virt board PL011 doesn't need GPIO pin multiplexing. Just enable it. */
+    *UART0_CR = 0;
+    *UART0_ICR = 0x7FF;
+    *UART0_IBRD = 26;
+    *UART0_FBRD = 3;
+    *UART0_LCRH = (0b11 << 5);
+    *UART0_CR = (1 << 0) | (1 << 8) | (1 << 9);
+    return;
+#endif
     register u32 temp;
 
     /* 1. Disable UART */
     *UART0_CR = 0;
+
 
     /* 2. Configure GPIO pins 14 & 15 for UART0 (ALT0) */
     temp = *GPFSEL1;

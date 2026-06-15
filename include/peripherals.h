@@ -1,10 +1,6 @@
 /*
  * ============================================================
- *  VibeCore OS — BCM2837 Peripheral Addresses
- *  Raspberry Pi 3B (BCM2837), MMIO base: 0x3F000000
- *
- *  Reference: BCM2835 ARM Peripherals Manual
- *  All offsets relative to MMIO base
+ *  VibeCore OS — Peripheral Addresses
  * ============================================================
  */
 
@@ -17,7 +13,10 @@
  *  MMIO Base Addresses
  * ──────────────────────────────────────────────────────────── */
 
-#if defined(RPI4)
+#if defined(VIRT)
+    /* QEMU virt board (AArch64) */
+    #define MMIO_BASE       0x09000000UL
+#elif defined(RPI4) || defined(RASPI4) || defined(RASPI4B)
     /* Raspberry Pi 4B (BCM2711) — Low Peripheral Mode */
     #define MMIO_BASE       0xFE000000UL
 #else
@@ -65,7 +64,12 @@
  *  UART0 (PL011) — Primary Serial Port
  * ──────────────────────────────────────────────────────────── */
 
-#define UART0_BASE          (MMIO_BASE + 0x00201000)
+#if defined(VIRT)
+    /* QEMU virt board uses PL011 UART at 0x09000000 */
+    #define UART0_BASE          0x09000000UL
+#else
+    #define UART0_BASE          (MMIO_BASE + 0x00201000)
+#endif
 
 #define UART0_DR            ((volatile u32*)(UART0_BASE + 0x00))   /* Data Register */
 #define UART0_RSRECR        ((volatile u32*)(UART0_BASE + 0x04))   /* Receive Status */
@@ -101,6 +105,7 @@
  *  Mailbox (ARM ↔ VideoCore GPU)
  * ──────────────────────────────────────────────────────────── */
 
+#if 1
 #define MBOX_BASE           (MMIO_BASE + 0x0000B880)
 
 #define MBOX_READ           ((volatile u32*)(MBOX_BASE + 0x00))
@@ -128,11 +133,13 @@
 #define MBOX_RESPONSE       0x80000000
 #define MBOX_REQUEST_SUCCESS 0x80000000
 #define MBOX_REQUEST_ERROR   0x80000001
+#endif /* !VIRT */
 
 /* ────────────────────────────────────────────────────────────
  *  System Timer
  * ──────────────────────────────────────────────────────────── */
 
+#if 1
 #define TIMER_BASE          (MMIO_BASE + 0x00003000)
 
 #define TIMER_CS            ((volatile u32*)(TIMER_BASE + 0x00))   /* Control/Status */
@@ -148,11 +155,13 @@
 #define TIMER_CS_M1         BIT(1)   /* Match 1 */
 #define TIMER_CS_M2         BIT(2)   /* Match 2 */
 #define TIMER_CS_M3         BIT(3)   /* Match 3 */
+#endif /* !VIRT */
 
 /* ────────────────────────────────────────────────────────────
  *  Interrupt Controller (ARM-specific)
  * ──────────────────────────────────────────────────────────── */
 
+#if 1
 #define IRQ_BASE            (MMIO_BASE + 0x0000B200)
 
 #define IRQ_BASIC_PENDING   ((volatile u32*)(IRQ_BASE + 0x00))
@@ -171,6 +180,7 @@
 #define IRQ_SYSTEM_TIMER_3  BIT(3)    /* System Timer Match 3 */
 #define IRQ_AUX             BIT(29)   /* Auxiliary (Mini-UART, SPI) */
 #define IRQ_UART            BIT(57)   /* UART (in IRQ_ENABLE_2) */
+#endif /* !VIRT */
 
 /* ────────────────────────────────────────────────────────────
  *  ARM64 System Registers (accessible via MRS/MSR)
