@@ -173,6 +173,9 @@ make firmware         # Download RPi firmware
 
 **ISO structure**: `build/vibecore.iso` (128 MB, MBR+FAT32, NOT ISO 9660!)
 
+**Critical**: ISO is NOT built automatically! Run `make iso` or `make iso-noroot` explicitly.
+`make iso-noroot` needs NO root, NO password, NO GUI.
+
 ---
 
 ## 🖥️ QEMU (ONLY way to test!)

@@ -158,6 +158,14 @@ pip3 install --break-system-packages --user flawfinder
 | `make iso-test` | Test ISO in QEMU | No |
 | `make firmware` | Download RPi firmware | No |
 
+### Critical: ISO must be EXPLICITLY built!
+- The ISO is **NOT** created automatically by `make` or `make run`
+- You MUST run `make iso` or `make iso-noroot` explicitly to create `build/vibecore.iso`
+- `make iso-noroot` works WITHOUT root, WITHOUT password, WITHOUT GUI
+- `make iso` auto-detects GUI → runs `iso-full` (needs Desktop GUI) or `iso-noroot` (headless)
+- `make iso-verify` checks partition table + FAT32 + MBR after build
+- `make clean` deletes `build/vibecore.iso` — rebuild after `make clean`!
+
 ### ISO Structure (DO NOT change!)
 - File: `build/vibecore.iso` (128 MB)
 - Format: MBR + FAT32 (**NOT** ISO 9660!)
