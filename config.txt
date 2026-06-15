@@ -1,0 +1,29 @@
+# ============================================================
+#  VibeCore OS — Boot Configuration (config.txt)
+#  Target: Raspberry Pi 3B / BCM2837 / Cortex-A53
+# ============================================================
+
+# Force 64-bit ARM mode (kernel8.img)
+arm_64bit=1
+
+# Kernel load address (standard for RPi 3)
+kernel_address=0x80000
+
+# Enable UART (serial console on GPIO 14/15)
+enable_uart=1
+
+# Minimal GPU memory (we're bare-metal, don't need GPU)
+gpu_mem=16
+
+# Disable overscan for clean framebuffer
+disable_overscan=1
+
+# HDMI settings for 1080p
+hdmi_group=1
+hdmi_mode=16
+
+# Boot delay (0 for fast boot)
+boot_delay=0
+
+# Disable rainbow splash screen
+disable_splash=1

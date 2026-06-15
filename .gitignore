@@ -1,0 +1,9 @@
+.worktrees/
+build/
+vibecore.iso
+*.o
+*.d
+kernel8.elf
+kernel8.img
+kernel.map
+kernel.dump
