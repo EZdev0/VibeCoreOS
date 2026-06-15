@@ -28,18 +28,28 @@ to work correctly, safely, and efficiently on the VibeCore OS project.
 ## 🎯 Jules' Tasks & Goals
 
 ### Primary Goals
-1. **Find & fix bugs**: Use ALL analysis tools (fanalyzer, cppcheck, flawfinder)
-2. **Implement features**: Only after consultation — no wild refactoring
-3. **Security audits**: `make audit` — cppcheck + flawfinder + fanalyzer
-4. **Maintain documentation**: README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md, BRAINSTORM.md
-5. **Monitor CI/CD**: Check GitHub Actions build status
-6. **Maintain build system**: Keep Makefile targets current
+1. **Sandbox setup first**: Install cppcheck, flawfinder, qemu-system-aarch64 before coding
+2. **Find & fix bugs**: Use ALL analysis tools (fanalyzer, cppcheck, flawfinder)
+3. **Implement features**: Only after consultation — no wild refactoring
+4. **Security audits**: `make audit` — cppcheck + flawfinder + fanalyzer
+5. **Always test OS**: `make run` (QEMU) + `make check` (analysis) after EVERY change
+6. **Maintain documentation**: README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md, BRAINSTORM.md
+7. **Monitor CI/CD**: Check GitHub Actions build status
+8. **Maintain build system**: Keep Makefile targets current
+
+### AI Agent Sandbox Rules
+- **Install ALL tools FIRST** at session start (before touching any code!)
+- **Test EARLY, test OFTEN** — run `make run` after EVERY significant code change
+- **3-file rule** — if >5 files need changes, write a plan first
+- **No assumptions** — always verify library availability, never assume headers exist
+- **Full audit minimum once** — `make audit` at least once per session
 
 ### On EVERY Task
 - Read `ARCHITECTURE.md` + `README.md` first
 - Run `make clean && make -j$(nproc)` as baseline
 - Run `make check` as pre-commit check
 - Run `make run` QEMU boot test
+- Run `make iso-noroot` (verify ISO builds without root)
 - Get a code review
 - Update documentation
 - **`make clean` + `git status` → root MUST be clean!**
@@ -66,6 +76,20 @@ to work correctly, safely, and efficiently on the VibeCore OS project.
 ---
 
 ## 📋 Complete Task Workflow (5 Phases)
+
+### Phase 0: SANDBOX SETUP (first 2 minutes) — DO THIS FIRST!
+```
+□ Check tools: which cppcheck flawfinder qemu-system-aarch64 aarch64-linux-gnu-gcc
+□ Install tools:
+   pip3 install --break-system-packages --user flawfinder          # Python tool, no sudo
+   sudo apt install -y cppcheck qemu-system-arm                    # via auth-helper.sh GUI
+□ Verify toolchain:
+   aarch64-linux-gnu-gcc --version && cppcheck --version && flawfinder --version
+□ Build baseline:
+   make clean && make -j$(nproc)
+   make run -- QEMU smoke test (timeout 15s, verify shell prompt)
+□ If sudo unavailable: pip3 install --user for Python tools, skip sudo-only tests, note limitations
+```
 
 ### Phase 1: CONTEXT (30% of time)
 ```

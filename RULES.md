@@ -38,7 +38,26 @@ shell, and ISO build system — developed and tested with AI assistance (Codebuf
 - Update Changelog in README.md with EVERY significant change
 - Update `make help` text when adding new targets
 
-### 6. Project Cleanliness MANDATORY
+### 6. AI Agent Sandbox — Tools MUST Be Installed
+- **Install ALL analysis tools in your sandbox** at the start of every session:
+  ```bash
+  # Cross-compiler (mandatory for builds)
+  sudo apt install -y gcc-aarch64-linux-gnu qemu-system-arm
+  
+  # Static analysis (mandatory for code quality)
+  pip3 install --break-system-packages --user flawfinder
+  sudo apt install -y cppcheck
+  
+  # Optional but recommended
+  sudo apt install -y clang-tidy dosfstools
+  ```
+- If `sudo` is not available in your sandbox: use `pip3 install --user` for Python tools
+- **Verify installation**: run `which cppcheck && which flawfinder && which qemu-system-aarch64`
+- If a tool can't be installed → document the limitation and use alternative checks
+- **ALWAYS test the OS** after changes: `make run` (QEMU boot) + `make check` (analysis)
+- Run `make audit` at least once per session to verify code quality
+
+### 7. Project Cleanliness MANDATORY
 - **NO** build artifacts in root directory! Run `make clean` after every build
 - **NO** `.o`/`.d` files outside `build/` or temporarily in `src/`
 - **NO** loose scripts in root — all scripts go in `scripts/`
@@ -46,6 +65,45 @@ shell, and ISO build system — developed and tested with AI assistance (Codebuf
 - Empty directories (`fonts/`) must be deleted or filled immediately
 - After EVERY session: `make clean && git status` — root MUST be clean
 - Before EVERY commit: clean root, check `.gitignore`, run `git status`
+
+---
+
+## 🧰 AI Agent Sandbox Setup (EVERY session!)
+
+Before starting ANY task, AI agents MUST set up their sandbox:
+
+### Phase 0: SANDBOX SETUP (first 2 minutes) — DO THIS FIRST!
+```
+1. Check installed tools:
+   which cppcheck flawfinder qemu-system-aarch64 aarch64-linux-gnu-gcc
+   
+2. Install missing tools:
+   - pip3 install --break-system-packages --user flawfinder  (if missing)
+   - sudo apt install -y cppcheck qemu-system-arm           (via sudo or pkexec)
+   
+3. Verify toolchain:
+   aarch64-linux-gnu-gcc --version
+   cppcheck --version
+   flawfinder --version
+   qemu-system-aarch64 --version
+   
+4. If sudo NOT available (pure sandbox):
+   - pip3 install --user cppcheck (if pip version exists)
+   - Document which tools are missing
+   - Skip sudo-dependent tests, note limitations
+   
+5. Build baseline:
+   make clean && make -j$(nproc)
+   make run -- QEMU smoke test (timeout 15s, verify shell prompt)
+```
+
+### AI Agent Golden Rules
+- **Install tools FIRST** — don't write code without the toolchain
+- **Test EARLY, test OFTEN** — run `make run` after EVERY significant change
+- **3-file limit** — if a change touches >5 files, STOP and write a plan first
+- **No assumptions** — NEVER assume a library exists. Check imports, headers, Makefile
+- **Sandbox limitations** — if your sandbox lacks `sudo`, use `pip install --user` and note it
+- **Full audit at least once** — run `make audit` at least once per coding session
 
 ---
 
@@ -63,12 +121,13 @@ shell, and ISO build system — developed and tested with AI assistance (Codebuf
 
 ### Phase 2: ANALYSIS (20% of time)
 ```
-1. make clean && make -j$(nproc)         ← Baseline build
+1. make clean && make -j$(nproc)         ← Baseline build (MUST pass!)
 2. make check                             ← Pre-commit quick check
 3. make fanalyzer                         ← GCC deep analysis
 4. make cppcheck                          ← Bug & UB detection
 5. make flawfinder                        ← CWE/SANS security
-6. thinker-with-files-gemini              ← Complex problems
+6. make run                               ← QEMU boot test (shell reachable?)
+7. thinker-with-files-gemini              ← Complex problems
 ```
 
 ### Phase 3: IMPLEMENTATION (30% of time)
@@ -79,15 +138,18 @@ shell, and ISO build system — developed and tested with AI assistance (Codebuf
 4. Code style MUST match existing code 1:1
 5. Update all references to changed symbols
 6. No dead imports, no unused variables
+7. NEVER modify >5 files without stopping to plan
+8. After each logical change: make -j$(nproc) → fix errors → continue
 ```
 
 ### Phase 4: VALIDATION (15% of time)
 ```
 1. make clean && make -j$(nproc)          ← MUST have 0 errors, 0 warnings
-2. make check                             ← Pre-commit check
-3. make run                               ← QEMU boot test (shell reachable?)
+2. make check                             ← Pre-commit check (cppcheck + flawfinder)
+3. make run                               ← QEMU boot test (shell prompt?)
 4. make harden-test                       ← Test hardened kernel
-5. spawn code-reviewer-deepseek-flash     ← PARALLEL with testing
+5. make iso-noroot                        ← Test ISO build (no root needed)
+6. spawn code-reviewer-deepseek-flash     ← PARALLEL with testing
 ```
 
 ### Phase 5: DOCUMENTATION + COMMIT (5% of time)
