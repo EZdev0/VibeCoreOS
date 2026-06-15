@@ -100,7 +100,7 @@ Before starting ANY task, AI agents MUST set up their sandbox:
 ### AI Agent Golden Rules
 - **Install tools FIRST** — don't write code without the toolchain
 - **Test EARLY, test OFTEN** — run `make run` after EVERY significant change
-- **3-file limit** — if a change touches >5 files, STOP and write a plan first
+- **Limit: max 5 files** — if a change touches >5 files, STOP and write a plan first
 - **No assumptions** — NEVER assume a library exists. Check imports, headers, Makefile
 - **Sandbox limitations** — if your sandbox lacks `sudo`, use `pip install --user` and note it
 - **Full audit at least once** — run `make audit` at least once per coding session
