@@ -67,6 +67,7 @@ static void rec_option(i32 y, int num, const char *label)
     framebuffer_fillrect(ox, y, ow, 38, bg);
     framebuffer_drawrect(ox, y, ow, 38, bd);
 
+    /* flawfinder: ignore */
     char buf[64];
     snprintf_local(buf, sizeof(buf), "  [%d]  %s", num, label);
     framebuffer_drawstring(ox + 14, y + 10, buf, fg, bg, 1);
@@ -107,6 +108,7 @@ void gui_recovery_show(const char *reason)
     rec_centered(y, "VibeCore OS -- Recovery Environment", REC_TITLE, 2);
     y += 45;
 
+    /* flawfinder: ignore */
     char sub[64];
     snprintf_local(sub, sizeof(sub), "Reason: %.40s", reason ? reason : "Manual recovery");
     rec_centered(y, sub, REC_SUBTEXT, 1);

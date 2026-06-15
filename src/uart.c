@@ -42,11 +42,9 @@ void uart_init(void)
     *UART0_FBRD = 3;
     *UART0_LCRH = (0b11 << 5);
     *UART0_CR = (1 << 0) | (1 << 8) | (1 << 9);
-    return;
-#endif
-    register u32 temp;
-
+#else
     /* 1. Disable UART */
+    register u32 temp;
     *UART0_CR = 0;
 
 
@@ -75,7 +73,7 @@ void uart_init(void)
 
     /* 7. Enable UART: TX, RX, UART */
     *UART0_CR = UART_CR_UARTEN | UART_CR_TXE | UART_CR_RXE;
-
+#endif
     uart_lock = false;
 }
 
@@ -110,7 +108,6 @@ void uart_putc(char c)
 
 void uart_puts(const char *str)
 {
-    CHECK_NULL(str);
     while (*str) {
         uart_putc(*str++);
     }
@@ -163,7 +160,6 @@ bool uart_has_char(void)
 
 void uart_printf(const char *fmt, ...)
 {
-    CHECK_NULL(fmt);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);

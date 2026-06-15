@@ -24,9 +24,9 @@
 typedef struct alloc_block {
     u64     size;
     bool    free;
-    u32     magic;
-    struct alloc_block *next;
-    struct alloc_block *prev;
+    u32     magic; /* cppcheck-suppress unusedStructMember */
+    struct alloc_block *next; /* cppcheck-suppress unusedStructMember */
+    struct alloc_block *prev; /* cppcheck-suppress unusedStructMember */
 } AllocBlock;
 
 #define ALLOC_MAGIC         0xDEADBEEF

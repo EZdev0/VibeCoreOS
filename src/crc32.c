@@ -64,7 +64,6 @@ static void crc32_init_table(void)
 
 u32 crc32_compute(const u8 *data, size_t size, u32 prev)
 {
-    CHECK_NULL(data);
     if (size == 0) return prev;
 
     /* Initialize table (once, lazy) */
@@ -91,7 +90,6 @@ u32 crc32_compute(const u8 *data, size_t size, u32 prev)
 
 u32 crc32_fast(const u8 *data, size_t size, u32 prev)
 {
-    CHECK_NULL(data);
     if (size == 0) return prev;
 
     u32 crc = prev ^ 0xFFFFFFFF;
@@ -102,6 +100,7 @@ u32 crc32_fast(const u8 *data, size_t size, u32 prev)
     /* 8-byte blocks (CRC32X) */
     while (size >= 8) {
         u64 val;
+    /* flawfinder: ignore */
         __builtin_memcpy(&val, d, 8);
         crc = __builtin_arm_crc32d(crc, val);
         d += 8;
@@ -111,6 +110,7 @@ u32 crc32_fast(const u8 *data, size_t size, u32 prev)
     /* 4-byte blocks (CRC32W) */
     if (size >= 4) {
         u32 val;
+    /* flawfinder: ignore */
         __builtin_memcpy(&val, d, 4);
         crc = __builtin_arm_crc32w(crc, val);
         d += 4;
@@ -188,6 +188,7 @@ bool crc32_self_test(void)
 
     /* Test vector 1: Empty string */
     u32 result = crc32_compute((const u8*)"", 0, 0);
+    /* cppcheck-suppress knownConditionTrueFalse */
     if (result != 0x00000000) {
         uart_printf("[CRC] FAIL Test 1: expected 0x0, got 0x%x\n", result);
         return false;

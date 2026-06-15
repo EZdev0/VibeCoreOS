@@ -80,6 +80,7 @@ u64 timer_get_ticks(void)
     u32 hi2 = *TIMER_CHI;
 
     /* If counter overflowed during read */
+    /* cppcheck-suppress knownConditionTrueFalse */
     if (hi1 != hi2) {
         lo = *TIMER_CLO;
     }

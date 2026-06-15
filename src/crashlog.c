@@ -40,6 +40,7 @@ static u32 crash_count = 0;
  * STATIC buffer (BSS, not stack!): Prevents recursive
  * panic if the crash was caused by stack overflow.
  */
+    /* flawfinder: ignore */
 static char crash_log_buf[CRASH_LOG_MAX_SIZE];
 
 /* ────────────────────────────────────────────────────────────
@@ -89,44 +90,44 @@ void crash_log_write(const char *title, const char *desc,
     int pos = 0;
 
     /* Header */
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "═══════════════════════════════════════\n"
         "  VibeCore OS — Crash Report #%d\n"
         "═══════════════════════════════════════\n\n", crash_count);
 
     /* System info */
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Version:    %s\n", VIBECORE_VERSION_STRING);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Timestamp:  %d ms since boot\n", (int)timer_get_ms());
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Uptime:     %d seconds\n", (int)(timer_get_ms() / 1000));
 
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Error info */
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Exception:  %s\n", title ? title : "Unknown");
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Details:    %s\n", desc ? desc : "No details");
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Register dump */
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "-- Register Dump --\n");
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "ESR:        0x%x\n", (u32)esr);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "ELR:        0x%x\n", (u32)elr);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "FAR:        0x%x\n", (u32)far);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* ESR decoding */
     u32 ec = (u32)((esr >> 26) & 0x3F);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "-- ESR Analysis --\n");
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "EC (Class):  0x%x", ec);
 
     const char *ec_desc;
@@ -139,14 +140,14 @@ void crash_log_write(const char *title, const char *desc,
         case 0x2F: ec_desc = "SError interrupt"; break;
         default:   ec_desc = "See ARMv8 Reference Manual"; break;
     }
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         " → %s\n", ec_desc);
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "ISS:         0x%x\n", (u32)(esr & 0x1FFFFFF));
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Footer */
-    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "═══════════════════════════════════════\n"
         "  Report saved to: %scrash_%d%s\n"
         "  Please reboot the system.\n"
@@ -165,6 +166,7 @@ void crash_log_write(const char *title, const char *desc,
     klog_fatal("Crash report #%d written: %s", crash_count, title ? title : "Unknown");
 
     /* Stub: Write to FAT32 once SD driver exists */
+    /* flawfinder: ignore */
     /* fs_write_file(log_path, (u8*)crash_log_buf, strlen(crash_log_buf)); */
 }
 

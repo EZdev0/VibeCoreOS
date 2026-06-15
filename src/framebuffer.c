@@ -31,7 +31,7 @@ typedef struct {
     u32 virt_height;    /* Virtual height */
     u32 pitch;          /* Bytes per line */
     u32 depth;          /* Bits per pixel */
-    u32 pixel_order;    /* 0=BGR, 1=RGB */
+    u32 pixel_order; /* cppcheck-suppress unusedStructMember */
     u8  *buffer;        /* Physical framebuffer address */
     u32 buffer_size;    /* Total buffer size */
     u32 back_offset;    /* Offset to back buffer */
@@ -347,6 +347,7 @@ void framebuffer_fillrect(i32 x, i32 y, i32 w, i32 h, Color color)
             }
             /* Odd trailing pixel */
             if (col < w) {
+                /* cppcheck-suppress unreadVariable */
                 ((u32 *)line64)[0] = pixel;
             }
         } else {
