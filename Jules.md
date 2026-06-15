@@ -211,7 +211,7 @@ make debug            # GDB Debug-Server (:1234)
 | 2 | Kein EMMC/SD-Treiber | `fs.c` | HIGH |
 | 3 | Kein USB-Treiber | — | MEDIUM |
 | 4 | Kein UEFI-Boot (VMs) | — | MEDIUM |
-| 5 | `va_arg` Type-Mismatch | `klog.c`, `interrupt.c` | MEDIUM |
+| 5 | `va_arg` Type-Mismatch (`snprintf_local`) | `interrupt.c` | MEDIUM |
 | 6 | Fehlende Prototypen | `boot_anim.c`, `crashlog.c` | LOW |
 | 7 | Precision-Loss Gradient | `boot_anim.c` | LOW |
 | 8 | Sign-Change in Crashlog | `crashlog.c` | LOW |
@@ -222,9 +222,11 @@ make debug            # GDB Debug-Server (:1234)
 | `mailbox_call` falscher Return-Check | `buffer[1] == MBOX_RESPONSE` |
 | GPU-Adresse falscher Slot | `buf[23]` (base) + `buf[24]` (size) |
 | `framebuffer_fillrect` Alignment-Fault | `IS_ALIGNED(buf,8)` + 32-bit Fallback |
+| ISO-Dateiendung `.img` statt `.iso` | Umbenannt auf `build/vibecore.iso` |
+| MBR ohne Boot-Code → VM "not bootable" | `scripts/mk-bootmbr.py` (440-Byte MBR) |
 | IRQ-Endlosschleife | Write-1-to-Clear + dmb |
 | `snprintf_local` Buffer-Overflow | `max==0` Guard |
-| MBR ohne Boot-Code | `scripts/mk-bootmbr.py` |
+| Auth-Helper Terminal-Fallback | Nur noch Desktop-GUI (zenity/pkexec) |
 
 ---
 
