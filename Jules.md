@@ -1,154 +1,155 @@
-# VibeCore OS — Jules AI Agent Regeln (Google)
+# VibeCore OS — Jules AI Agent Rules (Google)
 
-## 🤖 Für Google Jules (KI Coding Agent)
+## 🤖 For Google Jules (AI Coding Agent)
 
-Diese Datei enthält die spezifischen Regeln und Anweisungen für **Google's Jules AI Coding Agent**,
-damit er korrekt, sicher und effizient am VibeCore OS Projekt arbeiten kann.
+This file contains the specific rules and instructions for **Google's Jules AI Coding Agent**
+to work correctly, safely, and efficiently on the VibeCore OS project.
 
 ---
 
-## 📋 Projekt-Steckbrief
+## 📋 Project Fact Sheet
 
-| Feld | Wert |
-|------|------|
+| Field | Value |
+|-------|-------|
 | **Name** | VibeCore OS 1.0.0 "Photon" |
-| **Typ** | Bare-Metal ARM64 Betriebssystem |
-| **Zielplattform** | Raspberry Pi 3B (BCM2837) / 4B (BCM2711) |
-| **Sprache** | C (GCC) + ARMv8 Assembly |
-| **Kernel-Größe** | ~62 KB |
-| **Build-System** | GNU Make (parallel, `make -j$(nproc)`) |
+| **Type** | Bare-metal ARM64 operating system |
+| **Target platform** | Raspberry Pi 3B (BCM2837) / 4B (BCM2711) |
+| **Language** | C (GCC) + ARMv8 Assembly |
+| **Kernel size** | ~62 KB |
+| **Build system** | GNU Make (parallel, `make -j$(nproc)`) |
 | **Compiler** | `aarch64-linux-gnu-gcc` |
 | **Emulator** | QEMU `raspi3b`, Cortex-A53 |
+| **Static analysis** | cppcheck v2.17.1 + flawfinder v2.0.20 + GCC fanalyzer |
 | **CI/CD** | GitHub Actions `.github/workflows/build.yml` |
-| **Repo** | 🔒 Privat: `github.com/JONIMONI09/VibeCoreOS` |
+| **Repo** | 🔒 Private: `github.com/JONIMONI09/VibeCoreOS` |
 
 ---
 
-## 🎯 Jules' Aufgaben & Ziele
+## 🎯 Jules' Tasks & Goals
 
-### Primäre Ziele
-1. **Bugs finden & fixen**: Nutze ALLE Analyse-Tools (fanalyzer, cppcheck, flawfinder)
-2. **Features implementieren**: Nur nach Absprache, keine wilden Refactorings
-3. **Security-Audit**: `make audit` — cppcheck + flawfinder + fanalyzer
-4. **Dokumentation pflegen**: README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md
-5. **CI/CD überwachen**: GitHub Actions Build-Status prüfen
-6. **Build-System warten**: Makefile-Targets aktuell halten
+### Primary Goals
+1. **Find & fix bugs**: Use ALL analysis tools (fanalyzer, cppcheck, flawfinder)
+2. **Implement features**: Only after consultation — no wild refactoring
+3. **Security audits**: `make audit` — cppcheck + flawfinder + fanalyzer
+4. **Maintain documentation**: README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md, BRAINSTORM.md
+5. **Monitor CI/CD**: Check GitHub Actions build status
+6. **Maintain build system**: Keep Makefile targets current
 
-### Bei JEDEM Task
-- `ARCHITECTURE.md` + `README.md` zuerst lesen
-- `make clean && make -j$(nproc)` Baseline
-- `make check` Pre-Commit Check
-- `make run` QEMU Boot-Test
-- Code-Review einholen
-- Dokumentation updaten
-- **`make clean` + `git status` → Root MUSS sauber sein!**
-
----
-
-## 🚫 Absolute Verbote (10 Regeln)
-
-| # | Verbot | Begründung |
-|---|--------|-----------|
-| 1 | **`sudo`/`su` im Terminal** | Terminal-Korruption! Auth nur via `auth-helper.sh` (GUI) |
-| 2 | **Echter Raspberry Pi Zugriff** | Pi bleibt unberührt — 100% QEMU |
-| 3 | **`any`/`void*` Casts ohne Grund** | Type-Safety ist kritisch in C |
-| 4 | **`git push --force`** | Datenverlust-Risiko |
-| 5 | **Build-Artefakte committen** | `.gitignore` MUSS respektiert werden |
-| 6 | **Compiler-Warnings ignorieren** | `-Wall -Wextra -Werror` ist Pflicht |
-| 7 | **Compiler-Flags lockern** | Security-Flags sind nicht verhandelbar |
-| 8 | **`make install` ohne SD-Karte** | Nur für echtes Flashen auf Hardware |
-| 9 | **Ohne QEMU-Test commiten** | `make run` MUSS Shell-Prompt erreichen |
-| 10 | **Dokumentation veralten lassen** | IMMER aktuell halten! |
-| 11 | **Build-Artefakte im Root liegen lassen** | `make clean` nach jedem Build. Root MUSS sauber sein! |
-| 12 | **Lose Dateien oder Duplikate** | Alles hat seinen Platz — Skripte in `scripts/`, keine doppelten Docs |
+### On EVERY Task
+- Read `ARCHITECTURE.md` + `README.md` first
+- Run `make clean && make -j$(nproc)` as baseline
+- Run `make check` as pre-commit check
+- Run `make run` QEMU boot test
+- Get a code review
+- Update documentation
+- **`make clean` + `git status` → root MUST be clean!**
 
 ---
 
-## 📋 Vollständiger Task-Workflow (5 Phasen)
+## 🚫 Absolute Prohibitions (12 Rules)
 
-### Phase 1: KONTEXT (30% der Zeit)
-```
-□ ARCHITECTURE.md + README.md lesen
-□ Relevante src/*.c Dateien studieren
-□ Relevante include/*.h Header prüfen
-□ Bestehenden ähnlichen Code analysieren
-□ Code-Stil, Namensmuster, Struktur verstehen
-□ linker.ld Memory-Map prüfen (bei Speicher-Fragen)
-```
+| # | Prohibition | Reason |
+|---|-------------|--------|
+| 1 | **`sudo`/`su` in terminal** | Terminal corruption! Auth via `auth-helper.sh` only (GUI) |
+| 2 | **Real Raspberry Pi access** | Pi stays untouched — 100% QEMU |
+| 3 | **`any`/`void*` casts without reason** | Type safety is critical in C |
+| 4 | **`git push --force`** | Risk of data loss |
+| 5 | **Committing build artifacts** | `.gitignore` MUST be respected |
+| 6 | **Ignoring compiler warnings** | `-Wall -Wextra -Werror` is mandatory |
+| 7 | **Relaxing compiler flags** | Security flags are non-negotiable |
+| 8 | **`make install` without SD card** | For real hardware flashing only |
+| 9 | **Committing without QEMU test** | `make run` MUST reach shell prompt |
+| 10 | **Letting docs go stale** | ALWAYS keep current! |
+| 11 | **Leaving build artifacts in root** | `make clean` after every build. Root MUST be clean! |
+| 12 | **Loose files or duplicates** | Everything has its place — scripts in `scripts/`, no duplicate docs |
 
-### Phase 2: ANALYSE (20% der Zeit)
-```
-□ make clean && make -j$(nproc)        ← Baseline Build (0 Fehler?)
-□ make check                            ← Schnell-Check
-□ make fanalyzer                        ← GCC Deep Analysis
-□ make cppcheck                         ← Bug & UB Detection
-□ make flawfinder                       ← CWE/SANS Security Scan
-□ make audit                            ← Full Audit (bei großen Änderungen)
-□ thinker-with-files-gemini             ← Bei komplexen Problemen
-```
+---
 
-### Phase 3: IMPLEMENTIERUNG (30% der Zeit)
+## 📋 Complete Task Workflow (5 Phases)
+
+### Phase 1: CONTEXT (30% of time)
 ```
-□ write_todos                            ← Planung bei 3+ Schritten
-□ str_replace für Änderungen             ← BEVORZUGT (präziser)
-□ write_file NUR für neue Dateien        ← Ganze Datei neu
-□ Code-Stil 1:1 vom Bestand übernehmen   ← KEINE Abweichungen!
-□ Alle Referenzen updaten                ← code-searcher spawnen
-□ Keine toten Imports, keine ungenutzten Variablen
-□ Keine Magic Numbers                    ← Defines/Const verwenden
+□ Read ARCHITECTURE.md + README.md
+□ Study relevant src/*.c files
+□ Check relevant include/*.h headers
+□ Analyze existing similar code
+□ Understand code style, naming patterns, structure
+□ Check linker.ld memory map (for memory questions)
 ```
 
-### Phase 4: VALIDIERUNG (15% der Zeit)
+### Phase 2: ANALYSIS (20% of time)
 ```
-□ make clean && make -j$(nproc)         ← MUSS 0 Fehler, 0 Warnings
-□ make check                            ← Pre-Commit bestanden?
-□ make run                              ← QEMU Boot (Shell erreichbar?)
-□ make harden-test                      ← Gehärteter Kernel bootet?
-□ code-reviewer-deepseek                ← Code Review PARALLEL
-□ Alle Review-Findings fixen
+□ make clean && make -j$(nproc)         ← Baseline build (0 errors?)
+□ make check                             ← Quick check
+□ make fanalyzer                         ← GCC deep analysis
+□ make cppcheck                          ← Bug & UB detection
+□ make flawfinder                        ← CWE/SANS security scan
+□ make audit                             ← Full audit (for big changes)
+□ thinker-with-files-gemini              ← Complex problems
 ```
 
-### Phase 5: DOKUMENTATION + COMMIT (5% der Zeit)
+### Phase 3: IMPLEMENTATION (30% of time)
 ```
-□ README.md Changelog updaten
-□ ARCHITECTURE.md (bei Architektur-Änderungen)
-□ TESTING.md (bei neuen Test-Methoden)
-□ RULES.md (bei neuen Regeln/Tools)
-□ Jules.md (bei neuen Jules-Regeln)
-□ BRAINSTORM.md (bei neuen Ideen/Roadmap-Änderungen)
-□ make help-Text (bei neuen Targets)
-□ make clean              ← Root aufräumen!
-□ git status              ← Prüfen: keine .o/.d im Root!
+□ write_todos                             ← Planning for 3+ steps
+□ str_replace for changes                 ← PREFERRED (precise)
+□ write_file ONLY for new files          ← Full file new
+□ Code style 1:1 from existing code      ← NO deviations!
+□ Update all references                  ← spawn code-searcher
+□ No dead imports, no unused variables
+□ No magic numbers                       ← Use defines/const
+```
+
+### Phase 4: VALIDATION (15% of time)
+```
+□ make clean && make -j$(nproc)          ← MUST have 0 errors, 0 warnings
+□ make check                             ← Pre-commit passed?
+□ make run                               ← QEMU boot (shell reachable?)
+□ make harden-test                       ← Hardened kernel boots?
+□ code-reviewer-deepseek-flash           ← Code review PARALLEL
+□ Fix all review findings
+```
+
+### Phase 5: DOCUMENTATION + COMMIT (5% of time)
+```
+□ Update README.md Changelog
+□ Update ARCHITECTURE.md (on architecture changes)
+□ Update TESTING.md (on new test methods)
+□ Update RULES.md (on new rules/tools)
+□ Update Jules.md (on new Jules rules)
+□ Update BRAINSTORM.md (on new ideas/roadmap)
+□ Update make help text (on new targets)
+□ make clean              ← Clean root!
+□ git status              ← Check: no .o/.d in root!
 □ git add -A
-□ git commit -m "Bereich: Beschreibung"
-□ git push origin master
+□ git commit -m "Area: Description"
+□ git push origin master  ← NEVER --force!
 ```
 
 ---
 
-## 🔒 Security & Analyse — Alle Tools
+## 🔒 Security & Analysis — All Tools
 
 ### Build
 ```bash
-make -j$(nproc)       # Normaler Build (~2s)
-make harden           # Hardened Build (stack-clash-protection)
-make harden-test      # Hardened Build + QEMU Boot-Test
-make check            # Pre-Commit: compile + cppcheck
+make -j$(nproc)       # Normal build (~2s)
+make harden           # Hardened build (stack-clash-protection)
+make harden-test      # Hardened build + QEMU boot test
+make check            # Pre-commit: compile + cppcheck
 ```
 
 ### Security
 ```bash
-make fanalyzer        # GCC Deep Analysis (use-after-free, overflow, NULL)
-make flawfinder       # CWE/SANS Top 25 Security Patterns
-make security         # Security Audit Summary
+make fanalyzer        # GCC deep analysis (use-after-free, overflow, NULL)
+make flawfinder       # CWE/SANS Top 25 security patterns (v2.0.20)
+make security         # Security audit summary
 ```
 
 ### Logic
 ```bash
-make cppcheck         # Bug & Undefined Behavior Detection
-make clang-tidy       # Code Quality & CERT Compliance
-make clang-analyzer   # Clang Static Analyzer (Deep Logic)
-make logic            # Logic Check Summary
+make cppcheck         # Bug & undefined behavior detection (v2.17.1)
+make clang-tidy       # Code quality & CERT compliance
+make clang-analyzer   # Clang static analyzer (deep logic)
+make logic            # Logic check summary
 ```
 
 ### Full Audit
@@ -159,115 +160,118 @@ make analyze          # cppcheck + flawfinder (~10s)
 
 ---
 
-## 💿 ISO-System
+## 💿 ISO System
 
 ```bash
 make iso              # Auto: GUI=full, headless=noroot
-make iso-noroot       # Basis-Image (MBR+FAT32, KEIN Root)
-make iso-full         # Volles Image (braucht Desktop-GUI)
-make iso-verify       # Partition + FAT32 prüfen
-make iso-test         # ISO in QEMU testen
-make firmware         # RPi-Firmware downloaden
+make iso-noroot       # Base image (MBR+FAT32, NO root)
+make iso-full         # Full image (needs desktop GUI)
+make iso-verify       # Check partition + FAT32
+make iso-test         # Test ISO in QEMU
+make firmware         # Download RPi firmware
 ```
 
-**ISO-Struktur**: `build/vibecore.iso` (128 MB, MBR+FAT32, KEIN ISO 9660!)
+**ISO structure**: `build/vibecore.iso` (128 MB, MBR+FAT32, NOT ISO 9660!)
 
 ---
 
-## 🖥️ QEMU (NUR so testen!)
+## 🖥️ QEMU (ONLY way to test!)
 
 ```bash
-make run              # Terminal-Mode (raspi3b, nographic)
-make run-gui          # Grafik-Mode (GTK Display)
-make debug            # GDB Debug-Server (:1234)
+make run              # Terminal mode (raspi3b, nographic)
+make run-gui          # Graphics mode (GTK display)
+make debug            # GDB debug server (:1234)
 ```
 
-**Niemals** VM-Direktboot! Kein UEFI, kein BIOS — nur QEMU `-kernel` Flag.
+**Never** VM direct boot! No UEFI, no BIOS — only QEMU `-kernel` flag.
 
 ---
 
-## 📁 Wichtige Dateien
+## 📁 Important Files
 
-| Datei | Zweck | Bei Änderung |
-|-------|-------|-------------|
-| `src/kernel.c` | Haupt-Init (14 Phasen) | ARCHITECTURE.md updaten |
-| `src/boot.S` | ARMv8 Entry + Vectors | Mit äußerster Vorsicht! |
-| `src/framebuffer.c` | GPU-FB (128-bit STP) | QEMU run-gui testen |
-| `src/mailbox.c` | ARM↔GPU Mailbox | `make run` testen |
-| `src/interrupt.c` | Exception-Dispatch | Crash-Screen prüfen |
-| `src/scheduler.c` | BORE-Scheduler | `make run` testen |
-| `src/recovery.c` | 8-Subsystem Recovery | FSCK-Test |
-| `src/gui.c` | Desktop | `make run-gui` testen |
-| `src/shell.c` | Shell (18 Commands) | `make run` testen |
-| `include/peripherals.h` | BCM2837 MMIO | Mit Vorsicht! |
-| `include/types.h` | Typen + Makros | Alle Sourcen prüfen |
-| `linker.ld` | Memory-Layout | Stack/Heap prüfen |
-| `Makefile` | Build-System | `make help` updaten |
-| `scripts/auth-helper.sh` | GUI-Auth | KEIN Terminal-Fallback! |
-| `scripts/mk-bootmbr.py` | MBR Generator | `make iso-verify` testen |
-| `BRAINSTORM.md` | Roadmap & Ideen | Bei neuen Features/Zielen |
-| `.github/workflows/build.yml` | CI/CD | GH Actions prüfen |
+| File | Purpose | On Change |
+|------|---------|-----------|
+| `src/kernel.c` | Main init (14 phases) | Update ARCHITECTURE.md |
+| `src/boot.S` | ARMv8 entry + vectors | Extreme caution! |
+| `src/framebuffer.c` | GPU framebuffer (128-bit STP) | Test with QEMU run-gui |
+| `src/mailbox.c` | ARM↔GPU mailbox | Test with `make run` |
+| `src/interrupt.c` | Exception dispatch | Check crash screen |
+| `src/scheduler.c` | BORE scheduler | Test with `make run` |
+| `src/recovery.c` | 8-subsystem recovery | FSCK test |
+| `src/gui.c` | Desktop | Test with `make run-gui` |
+| `src/shell.c` | Shell (18 commands) | Test with `make run` |
+| `include/peripherals.h` | BCM2837 MMIO | Careful! |
+| `include/types.h` | Types + macros | Check all sources |
+| `linker.ld` | Memory layout | Check stack/heap |
+| `Makefile` | Build system | Update `make help` |
+| `scripts/auth-helper.sh` | GUI auth | NO terminal fallback! |
+| `scripts/mk-bootmbr.py` | MBR generator | Test with `make iso-verify` |
+| `BRAINSTORM.md` | Roadmap & ideas | On new features/goals |
+| `.github/workflows/build.yml` | CI/CD | Check GH Actions |
 
 ---
 
-## 🐛 Bekannte Bugs & Baustellen
+## 🐛 Known Bugs & Issues
 
-| # | Bug | Datei | Schwere |
-|---|-----|-------|---------|
-| 1 | MMU deaktiviert (MMIO-Caching) | `mmu.c`, `kernel.c` | HIGH |
-| 2 | Kein EMMC/SD-Treiber | `fs.c` | HIGH |
-| 3 | Kein USB-Treiber | — | MEDIUM |
-| 4 | Kein UEFI-Boot (VMs) | — | MEDIUM |
-| 5 | `va_arg` Type-Mismatch (`snprintf_local`) | `interrupt.c` | MEDIUM |
-| 6 | Fehlende Prototypen | `boot_anim.c`, `crashlog.c` | LOW |
-| 7 | Precision-Loss Gradient | `boot_anim.c` | LOW |
-| 8 | Sign-Change in Crashlog | `crashlog.c` | LOW |
+| # | Bug | File | Severity |
+|---|-----|------|----------|
+| 1 | MMU disabled (MMIO caching) | `mmu.c`, `kernel.c` | HIGH |
+| 2 | No EMMC/SD driver | `fs.c` | HIGH |
+| 3 | No USB driver | — | MEDIUM |
+| 4 | No UEFI boot (VMs) | — | MEDIUM |
+| 5 | `va_arg` type mismatch (`snprintf_local`) | `interrupt.c` | MEDIUM |
+| 6 | Missing prototypes | `boot_anim.c`, `crashlog.c` | LOW |
+| 7 | Precision loss gradient | `boot_anim.c` | LOW |
+| 8 | Sign change in crashlog | `crashlog.c` | LOW |
 
-### Kürzlich behoben (2026-06-15)
+### Recently Fixed (2026-06-15)
 | Bug | Fix |
 |-----|-----|
-| `mailbox_call` falscher Return-Check | `buffer[1] == MBOX_RESPONSE` |
-| GPU-Adresse falscher Slot | `buf[23]` (base) + `buf[24]` (size) |
-| `framebuffer_fillrect` Alignment-Fault | `IS_ALIGNED(buf,8)` + 32-bit Fallback |
-| ISO-Dateiendung `.img` statt `.iso` | Umbenannt auf `build/vibecore.iso` |
-| MBR ohne Boot-Code → VM "not bootable" | `scripts/mk-bootmbr.py` (440-Byte MBR) |
-| IRQ-Endlosschleife | Write-1-to-Clear + dmb |
-| `snprintf_local` Buffer-Overflow | `max==0` Guard |
-| Auth-Helper Terminal-Fallback | Nur noch Desktop-GUI (zenity/pkexec) |
+| `mailbox_call` wrong return check | `buffer[1] == MBOX_RESPONSE` |
+| GPU address wrong slot | `buf[23]` (base) + `buf[24]` (size) |
+| `framebuffer_fillrect` alignment fault | `IS_ALIGNED(buf,8)` + 32-bit fallback |
+| ISO extension `.img` instead of `.iso` | Renamed to `build/vibecore.iso` |
+| MBR without boot code → VM "not bootable" | `scripts/mk-bootmbr.py` (440-byte MBR) |
+| IRQ infinite loop | Write-1-to-clear + dmb |
+| `snprintf_local` buffer overflow | `max==0` guard |
+| Auth-helper terminal fallback | Desktop GUI only (zenity/pkexec) |
 
 ---
 
-## 🔒 Security-Checkliste (vor JEDEM Commit)
+## 🔒 Security Checklist (before EVERY commit)
 
 ```
-□ make clean && make -j$(nproc)    → 0 Fehler, 0 Warnings
-□ make check                       → Pre-Commit bestanden
-□ make run                         → Bootet bis Shell-Prompt
-□ make harden-test                 → Gehärteter Kernel bootet
-□ Keine sensitiven Daten im Diff
-□ .gitignore aktuell
-□ Root sauber: keine .o, .d, Duplikate im Root!
-□ Kein sudo/su im Code
-□ Stack-Canary intakt (-fstack-protector-strong)
-□ -mstrict-align aktiv
-□ -fstack-clash-protection (bei harden)
-□ README.md Changelog aktuell
+□ make clean && make -j$(nproc)    → 0 errors, 0 warnings
+□ make check                       → Pre-commit passed
+□ make run                         → Boots to shell prompt
+□ make harden-test                 → Hardened kernel boots
+□ No sensitive data in diff
+□ .gitignore current
+□ Root clean: no .o, .d, duplicates in root!
+□ make cppcheck (0 critical issues)
+□ make flawfinder (0 high-risk findings)
+□ No sudo/su in code
+□ Stack canary intact (-fstack-protector-strong)
+□ -mstrict-align active
+□ -fstack-clash-protection (on harden)
+□ README.md Changelog current
 ```
 
 ---
 
-## 📊 Referenzwerte
+## 📊 Reference Values
 
-| Metrik | Soll | Toleranz |
-|--------|------|----------|
-| Kernel-Größe | 62 KB | ±5 KB |
-| Build-Zeit | ~2s | <5s |
-| Boot-Zeit (QEMU) | ~1.6s | <3s |
+| Metric | Target | Tolerance |
+|--------|--------|-----------|
+| Kernel size | 62 KB | ±5 KB |
+| Build time | ~2s | <5s |
+| Boot time (QEMU) | ~1.6s | <3s |
 | Heap | 1 MB | — |
 | Stack | 128 KB | — |
-| Compile-Warnings | 0 | **0** |
-| Fanalyzer-Warnings | <5 | Informational |
+| Compile warnings | 0 | **0** |
+| Fanalyzer warnings | <5 | Informational |
+| Cppcheck issues | 0 | <5 informational |
 
 ---
 
-_Jules-Regeln v2.0 — 15. Juni 2026 — VibeCore Labs_
+_Jules Rules v3.0 — June 15, 2026 — VibeCore Labs_

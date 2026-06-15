@@ -4,13 +4,13 @@
 
 ---
 
-## 📊 IST-Zustand — Was wir haben
+## 📊 Current State — What We Have
 
 ```
-✅ = Fertig   🟡 = Teilweise   ❌ = Fehlt
+✅ = Done   🟡 = Partial   ❌ = Missing
 ```
 
-### Kernel-Core
+### Kernel Core
 | Feature | Status | Details |
 |---------|--------|---------|
 | ARMv8 Boot | ✅ | boot.S + BSS init + FP/SIMD enable |
@@ -19,29 +19,29 @@
 | Timer | ✅ | System Timer, 1 kHz Tick, sleep_ms |
 | Framebuffer | ✅ | Mailbox-GPU, 1024×768×32, 128-bit STP |
 | Allocator | ✅ | kmalloc/kzalloc, graceful OOM, emergency |
-| MMU | 🟡 | Code vorhanden, deaktiviert (MMIO-Cache-Bug) |
+| MMU | 🟡 | Code exists, disabled (MMIO cache bug) |
 | Scheduler | ✅ | BORE-inspired, 32 Tasks, 1 kHz |
 
 ### Storage & Recovery
 | Feature | Status | Details |
 |---------|--------|---------|
-| FAT32 FS | 🟡 | RAM-Disk only, kein EMMC/SD |
-| CRC32 | ✅ | Hardware-beschleunigt, Self-Test |
-| Journal | ✅ | 8 KB Ring, 512 Einträge, atomar |
-| Trash Bin | ✅ | .meta Sidecar, Original-Pfad |
-| Versioning | ✅ | CoW vor jedem Write |
-| Snapshots | ✅ | Auto-Boot + Manuell |
-| System Protection | ✅ | Immutable File List |
-| Boot Recovery | ✅ | Journal-Scan, Rollback |
+| FAT32 FS | 🟡 | RAM-Disk only, no EMMC/SD |
+| CRC32 | ✅ | Hardware-accelerated, self-test |
+| Journal | ✅ | 8 KB ring, 512 entries, atomic |
+| Trash Bin | ✅ | .meta sidecar, original path |
+| Versioning | ✅ | CoW before every write |
+| Snapshots | ✅ | Auto-boot + manual |
+| System Protection | ✅ | Immutable file list |
+| Boot Recovery | ✅ | Journal scan, rollback |
 
 ### GUI & UX
 | Feature | Status | Details |
 |---------|--------|---------|
-| Desktop | ✅ | Taskbar, Icons, Fenster, Clock |
-| Welcome Screen | ✅ | Gradient, Logo, ENTER |
-| Recovery Screen | ✅ | Rot/Gefahr-Theme, Tastatur |
-| Boot Animation | ✅ | 20 Frames, Gradient-Progress |
-| Shell | ✅ | 18+ Kommandos, UART |
+| Desktop | ✅ | Taskbar, icons, windows, clock |
+| Welcome Screen | ✅ | Gradient, logo, ENTER |
+| Recovery Screen | ✅ | Red/danger theme, keyboard |
+| Boot Animation | ✅ | 20 frames, gradient progress |
+| Shell | ✅ | 18+ commands, UART |
 
 ### Build & CI/CD
 | Feature | Status | Details |
@@ -49,43 +49,43 @@
 | Makefile | ✅ | Parallel, Auth, ISO |
 | ISO-System | ✅ | MBR+FAT32, 128 MB, Boot-Code |
 | Cross-Compiler | ✅ | aarch64-linux-gnu-gcc |
-| GitHub Actions | ✅ | Build + Cppcheck + QEMU + ISO |
+| GitHub Actions | ✅ | Build + cppcheck + QEMU + ISO |
 | Security Tools | ✅ | fanalyzer, flawfinder, cppcheck, harden |
-| Auth-Helper | ✅ | GUI-Only, 5-Minuten-Cache |
+| Auth-Helper | ✅ | GUI-only, 5-minute cache |
 
 ### Docs
 | Feature | Status | Details |
 |---------|--------|---------|
-| README.md (DE) | ✅ | 395 Zeilen, 1842 Wörter |
-| ARCHITECTURE.md (EN) | ✅ | Komplette Architektur |
-| TESTING.md | ✅ | Test-Pyramide |
-| RULES.md | ✅ | Codebuff/Buffy Regeln |
-| Jules.md | ✅ | Google Jules Regeln |
+| README.md (EN) | ✅ | 395 lines, 1842 words |
+| ARCHITECTURE.md (EN) | ✅ | Complete architecture |
+| TESTING.md | ✅ | Test pyramid |
+| RULES.md (EN) | ✅ | Codebuff/Buffy rules |
+| Jules.md (EN) | ✅ | Google Jules rules |
 
 ---
 
 ## 🎯 ROADMAP
 
-### 🔴 v1.1 — "Electron" (Stabilität & Bugfixes) — ~2 Wochen (optimistisch)
+### 🔴 v1.1 — "Electron" (Stability & Bugfixes) — ~2 weeks (optimistic)
 
-#### Priorität 1: Bugs beheben
+#### Priority 1: Fix Bugs
 ```
 [ ] va_arg Type-Mismatch in snprintf_local (interrupt.c)
-    → Typ-Korrektur: va_arg(args, uint64_t) statt va_arg(args, uint32_t)
-    → Impact: Crash-Risiko bei varargs auf ARM64
+    → Type correction: va_arg(args, uint64_t) instead of va_arg(args, uint32_t)
+    → Impact: Crash risk with varargs on ARM64
 
 [ ] Missing prototypes:
-    → boot_animation_run() Deklaration fehlt
-    → crash_log_init(), crash_log_write() Deklaration fehlt
+    → boot_animation_run() declaration missing
+    → crash_log_init(), crash_log_write() declaration missing
 
 [ ] Precision loss: u32→u8 in boot_anim.c Gradient
-    → Explizite Konvertierung mit Warnung
+    → Explicit conversion with warning
 
 [ ] Sign-change: int + size_t in crashlog.c
-    → Expliziter Cast
+    → Explicit cast
 ```
 
-#### Priorität 2: Code-Qualität
+#### Priority 2: Code Quality
 ```
 [ ] Alle compiler warnings fixen (Ziel: 0 warnings mit -Wall -Wextra -Werror)
 [ ] fanalyzer-warnings durchgehen und filtern
@@ -93,7 +93,7 @@
 [ ] cppcheck inconclusive warnings durchgehen
 ```
 
-#### Priorität 3: Testing
+#### Priority 3: Testing
 ```
 [ ] Unit-Test Framework (minimal, in-kernel)
     → ASSERT Macro
@@ -111,9 +111,9 @@
 
 ---
 
-### 🟡 v1.2 — "Neutron" (I/O & Persistenz) — ~4-8 Wochen (optimistisch)
+### 🟡 v1.2 — "Neutron" (I/O & Persistence) — ~4-8 weeks (optimistic)
 
-#### Tests für v1.2
+#### Tests for v1.2
 ```
 [ ] CI/CD erweitern: ISO + QEMU Boot mit SD-Image
 [ ] EMMC Read/Write Loopback Test (write → read → compare)
@@ -156,9 +156,9 @@
 
 ---
 
-### 🟢 v1.3 — "Proton" (Netzwerk) — ~6-10 Wochen (optimistisch)
+### 🟢 v1.3 — "Proton" (Network) — ~6-10 weeks (optimistic)
 
-#### Tests für v1.3
+#### Tests for v1.3
 ```
 [ ] CI/CD: ping localhost via QEMU user-mode network
 [ ] DHCP: lease acquirieren + erneuern
@@ -199,9 +199,9 @@
 
 ---
 
-### 🔵 v1.4 — "Gluon" (Userspace & Prozesse) — ~8-12 Wochen (optimistisch)
+### 🔵 v1.4 — "Gluon" (Userspace & Processes) — ~8-12 weeks (optimistic)
 
-#### Tests für v1.4
+#### Tests for v1.4
 ```
 [ ] CI/CD: Userspace Binary bauen + in QEMU ausführen
 [ ] ELF Loader: 100 Programme laden/entladen ohne Leak
@@ -254,9 +254,9 @@
 
 ---
 
-### 🟣 v2.0 — "Boson" (App-Plattform) — ~12-16 Wochen (optimistisch)
+### 🟣 v2.0 — "Boson" (App Platform) — ~12-16 weeks (optimistic)
 
-#### Tests für v2.0
+#### Tests for v2.0
 ```
 [ ] CI/CD: Vollständiger Userspace-Test-Suite
 [ ] Lua: Scripting-Tests (math, string, io)
@@ -296,7 +296,7 @@
 
 ---
 
-## 💡 IDEA PARKING LOT
+## 💡 Idea Parking Lot
 
 ### Security
 ```
@@ -436,45 +436,45 @@
 
 ---
 
-## 🏗️ ARCHITEKTUR-DEBATTE
+## 🏗️ Architecture Debate
 
-### Pro/Contra: MMU für alles
+### Pro/Contra: MMU for everything
 | Pro | Contra |
 |-----|--------|
-| Schutz vor Wild-Pointern | Overhead pro Context Switch |
-| Userspace-Isolation | Komplexität (TLB Management) |
-| ASLR möglich | 2MB Granules grob |
+| Protection against wild pointers | Overhead per context switch |
+| Userspace isolation | Complexity (TLB management) |
+| ASLR possible | 2MB granules coarse |
 
-**Entscheidung**: MMU aktivieren, sobald Userspace kommt. Kernel in eigenen Adressraum.
+**Decision**: Enable MMU when userspace arrives. Kernel in own address space.
 
 ### Pro/Contra: Microkernel vs Monolith
-| Monolith (aktuell) | Microkernel |
+| Monolith (current) | Microkernel |
 |--------------------|-------------|
-| Schnell (direct calls) | Sicherer (IPC-Isolation) |
-| Einfacher zu bauen | Komplexer IPC-Overhead |
-| Weniger Context-Switches | Treiber-Crash killt nicht Kernel |
+| Fast (direct calls) | Safer (IPC isolation) |
+| Easier to build | Complex IPC overhead |
+| Fewer context switches | Driver crash doesn't kill kernel |
 
-**Entscheidung**: Monolith beibehalten. Recovery-System kompensiert Stabilität. Microkernel erst bei Multi-User/Multi-Tenant.
+**Decision**: Keep monolith. Recovery system compensates stability. Microkernel only at multi-user/multi-tenant.
 
-### Pro/Contra: Rust statt C?
-| C (aktuell) | Rust |
+### Pro/Contra: Rust instead of C?
+| C (current) | Rust |
 |-------------|------|
-| Komplette Kontrolle | Memory-Safety by default |
-| ARM64 Toolchain stabil | ARM64 Bare-Metal noch jung |
-| Alle Beispiele in C | Weniger Embedded-Resources |
+| Complete control | Memory safety by default |
+| ARM64 toolchain stable | ARM64 bare-metal still young |
+| All examples in C | Fewer embedded resources |
 
-**Entscheidung**: C für Kernel-Core. Rust für Userspace-Apps erwägen (wenn Userspace existiert).
+**Decision**: C for kernel core. Consider Rust for userspace apps (when userspace exists).
 
 ---
 
 ## 🔬 RESEARCH AREAS
 
-### Aktuell zu erforschen
+### Currently to research
 ```
 [ ] ARM GIC (Generic Interrupt Controller)
-    → GIC-400 auf RPi 4/5
-    → Legacy IRQ auf RPi 3B (einfacher)
-    → Interrupt-Prioritäten
+    → GIC-400 on RPi 4/5
+    → Legacy IRQ on RPi 3B (simpler)
+    → Interrupt priorities
 
 [ ] PCIe Enumeration (RPi 5)
     → Root Complex BAR-Scan
@@ -487,27 +487,27 @@
     → Key Storage, DRM, Attestation
 
 [ ] ARMv8 Crypto Extensions
-    → AES, SHA-1, SHA-256 in Hardware
-    → Geschwindigkeit: 10-100x schneller
-    → Für Signatur-Verifikation
+    → AES, SHA-1, SHA-256 in hardware
+    → Speed: 10-100x faster
+    → For signature verification
 
 [ ] ACPI / Device Tree
-    → Hardware-Erkennung statt Hardcoding
-    → Multi-Platform (RPi 3/4/5, QEMU virt)
+    → Hardware detection instead of hardcoding
+    → Multi-platform (RPi 3/4/5, QEMU virt)
 ```
 
 ---
 
-## 📈 METRIKEN & ZIELE
+## 📈 Metrics & Goals
 
-| Metrik | Ist (v1.0) | Ziel (v1.1) | Ziel (v1.2) | Ziel (v2.0) |
+| Metric | Current (v1.0) | Target (v1.1) | Target (v1.2) | Target (v2.0) |
 |--------|------------|-------------|-------------|-------------|
-| Kernel-Größe | 62 KB | < 70 KB | < 100 KB | < 200 KB |
-| Boot-Zeit (QEMU) | 1.6s | < 1.5s | < 1.8s | < 2.5s |
-| Shell-Kommandos | 18 | 20 | 25 | 30+ |
-| Security-Flags | 6 | 8 | 10 | 12 |
-| CI/CD Jobs | 3 | 4 | 5 | 6 |
-| Dokumentation (Zeilen) | ~2000 | ~2500 | ~3000 | ~4000 |
+| Kernel size | 62 KB | < 70 KB | < 100 KB | < 200 KB |
+| Boot time (QEMU) | 1.6s | < 1.5s | < 1.8s | < 2.5s |
+| Shell commands | 18 | 20 | 25 | 30+ |
+| Security flags | 6 | 8 | 10 | 12 |
+| CI/CD jobs | 3 | 4 | 5 | 6 |
+| Documentation (lines) | ~2000 | ~2500 | ~3000 | ~4000 |
 | compiler warnings (`-Wall -Wextra`) | 0 ✅ | 0 | 0 | 0 |
 | fanalyzer issues | 0 ✅ | 0 | 0 | 0 |
 | flawfinder hits | 0 ✅ | 0 | 0 | 0 |
@@ -515,44 +515,44 @@
 
 ---
 
-## 🗳️ PRIORITÄTS-MATRIX
+## 🗳️ Priority Matrix
 
 ```
-                  NIEDRIG IMPACT          HOHER IMPACT
+                  LOW IMPACT             HIGH IMPACT
                   │                       │
-EINFACH ──────────┼───────────────────────┼──────────
-                  │ Bug-Fixes             │ Shell-Commands
-                  │ Code-Cleanup          │ make check
-                  │ Doku-Updates          │ CI/CD Tests
+EASY ─────────────┼───────────────────────┼──────────
+                  │ Bug fixes             │ Shell commands
+                  │ Code cleanup          │ make check
+                  │ Doc updates           │ CI/CD tests
                   │                       │
                   ────────────────────────┼──────────
                   │                       │
-SCHWER ───────────┼───────────────────────┼──────────
-                  │ WiFi Driver           │ EMMC Driver
-                  │ Audio PWM             │ USB Stack
-                  │ TrueType Fonts        │ MMU Fix
+HARD ─────────────┼───────────────────────┼──────────
+                  │ WiFi driver           │ EMMC driver
+                  │ Audio PWM             │ USB stack
+                  │ TrueType fonts        │ MMU fix
                   │                       │ Userspace
 ```
 
-**Empfehlung**: Erst EINFACH+HOHER IMPACT, dann SCHWER+HOHER IMPACT.
+**Recommendation**: First EASY+HIGH IMPACT, then HARD+HIGH IMPACT.
 
 ---
 
-## 🎓 LERN-RESSOURCEN
+## 🎓 Learning Resources
 
-### Bücher
+### Books
 - **ARM System Developer's Guide** (Sloss, Symes, Wright)
 - **ARM64 Assembly Language** (Smith)
 - **Operating Systems: Three Easy Pieces** (Arpaci-Dusseau)
 - **Linux Device Drivers** (Corbet, Rubini, Kroah-Hartman)
 
-### Spezifikationen
+### Specifications
 - **ARMv8-A Architecture Reference Manual**
 - **BCM2837 ARM Peripherals Manual**
 - **DWC2 USB 2.0 Host Controller Databook**
 - **EMMC2 Controller (SDHCI Specification)**
 
-### Code-Referenzen
+### Code References
 - **xv6** (MIT Teaching OS, RISC-V)
 - **raspberry-pi-os** (s-matyukevich, Tutorial)
 - **Circle** (Rene Stange, C++ Bare-Metal RPi)
@@ -560,7 +560,7 @@ SCHWER ───────────┼────────────�
 
 ---
 
-## 📝 NOTIZEN / IDEEN (ungefiltert)
+## 📝 Notes / Ideas (unfiltered)
 
 ```
 - "VibeScript" — eigene Scripting-Sprache für die Shell?
@@ -612,13 +612,13 @@ SCHWER ───────────┼────────────�
 
 ---
 
-## 🚀 NEXT ACTIONS (diese Session)
+## 🚀 Next Actions (this session)
 
-1. **Alle 4 Bugs fixen** (va_arg, prototypes, precision, sign-change)
-2. **fanalyzer/flawfinder/cppcheck warnings analysieren**
-3. **Unit-Test Framework bauen**
-4. **EMMC Research starten**
+1. **Fix all 4 bugs** (va_arg, prototypes, precision, sign-change)
+2. **Analyze fanalyzer/flawfinder/cppcheck warnings**
+3. **Build unit test framework**
+4. **Start EMMC research**
 
 ---
 
-_Letzte Aktualisierung: 15. Juni 2026 — VibeCore Labs_
+_Last updated: June 15, 2026 — VibeCore Labs_

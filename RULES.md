@@ -1,316 +1,329 @@
-# VibeCore OS — Regeln & KI-Agent Vorgehen (Codebuff/Buffy)
+# VibeCore OS — Rules & AI Agent Guide (Codebuff/Buffy)
 
-## 🎯 Projekt-Ziel
+## 🎯 Project Goal
 
-**VibeCore OS "Photon"** ist ein Bare-Metal ARM64 Betriebssystem für Raspberry Pi 3B/4B.
-Kein Linux, kein Userspace — alles von Grund auf in C und ARMv8 Assembly gebaut.
+**VibeCore OS "Photon"** is a bare-metal ARM64 operating system for Raspberry Pi 3B/4B.
+No Linux, no userspace — everything built from scratch in C and ARMv8 Assembly.
 
-Ziel: Ein **funktionierendes, bootfähiges OS** mit grafischem Desktop, Recovery-System,
-Shell und ISO-Build-System — entwickelt und getestet mit KI-Unterstützung (Codebuff/Buffy).
+Goal: A **fully functional, bootable OS** with a graphical desktop, recovery system,
+shell, and ISO build system — developed and tested with AI assistance (Codebuff/Buffy).
 
 ---
 
-## 🤖 KI-Agent Grundprinzipien
+## 🤖 AI Agent Core Principles
 
-### 1. Verstehen vor Handeln
-- Immer zuerst **Kontext sammeln**: Dateien lesen, Code durchsuchen, Web recherchieren
-- `ARCHITECTURE.md` + `README.md` lesen, bevor du Code anfasst
-- Bestehende Konventionen, Code-Stil, Architektur-Muster EXAKT nachahmen
-- **NIEMALS** wild refactorn oder Struktur ändern ohne explizite Absprache
+### 1. Understand Before Acting
+- Always **gather context first**: read files, search code, research the web
+- Read `ARCHITECTURE.md` + `README.md` BEFORE touching any code
+- EXACTLY follow existing conventions, code style, and architecture patterns
+- **NEVER** refactor or restructure without explicit approval
 
-### 2. Qualität über Geschwindigkeit
-- Korrektheit > Produktivität
-- Lieber 3 gut informierte Agents als 10 überhastete
-- Im Zweifel: nachfragen (`ask_user`)
+### 2. Quality Over Speed
+- Correctness > Productivity
+- Prefer 3 well-informed agents over 10 rushed ones
+- When in doubt: ask (`ask_user`)
 
-### 3. NIEMALS Terminal-Passwort-Eingabe
-- `sudo`/`su` triggert **Terminal-Korruption** — zerstört den Chat!
-- `auth-helper.sh` nutzt NUR Desktop-GUI (zenity/pkexec), kein Terminal-Fallback
-- Build-Operationen ohne GUI: `make iso-noroot` (kein Root nötig)
+### 3. NEVER Use Terminal Password Prompts
+- `sudo`/`su` triggers **terminal corruption** — destroys the chat session!
+- `auth-helper.sh` uses ONLY desktop GUI (zenity/pkexec), no terminal fallback
+- For non-GUI operations: `make iso-noroot` (no root required)
 
-### 4. Nur QEMU zum Testen
-- **KEIN echter Raspberry Pi Zugriff!** Der Pi bleibt unberührt.
-- Alle Tests im Emulator: `make run`, `make run-gui`, `make iso-test`
-- `make harden-test` für gehärteten Kernel in QEMU
+### 4. QEMU Only for Testing
+- **NO real Raspberry Pi access!** The Pi stays untouched.
+- All tests in emulator: `make run`, `make run-gui`, `make iso-test`
+- `make harden-test` for hardened kernel QEMU test
 
-### 5. Dokumentation IMMER aktuell halten
+### 5. Documentation MUST Always Be Current
 - README.md, ARCHITECTURE.md, TESTING.md, RULES.md, Jules.md, BRAINSTORM.md
-- Bei JEDER signifikanten Änderung: Changelog in README.md updaten
-- Neue Befehle/Targets: `make help`-Text updaten
+- Update Changelog in README.md with EVERY significant change
+- Update `make help` text when adding new targets
 
-### 6. Projekt-Ordnung ZWINGEND einhalten
-- **KEINE** Build-Artefakte im Root-Verzeichnis! `make clean` nach jedem Build
-- **KEINE** `.o`/`.d` Dateien außerhalb von `build/` oder temporär in `src/`
-- **KEINE** losen Skripte im Root — alle Skripte gehören nach `scripts/`
-- **KEINE** Duplikate! `doc/` wurde gelöscht — es gibt nur EINE Version jeder Doku
-- Leere Ordner (`fonts/`) sofort löschen oder befüllen
-- Nach JEDER Session: `make clean && git status` — Root MUSS sauber sein
-- Vor JEDEM Commit: Root aufräumen, `.gitignore` prüfen, `git status` kontrollieren
-
----
-
-## 📋 Vollständiger Agent-Workflow
-
-### Phase 1: KONTEXT (30% der Zeit)
-```
-1. ARCHITECTURE.md + README.md lesen
-2. Relevante src/-Dateien mit read_files lesen
-3. Relevante include/-Header prüfen
-4. file-picker + code-searcher spawnen (parallel!)
-5. researcher-web/docs spawnen (bei externen APIs/Tools)
-6. Bestehenden ähnlichen Code studieren
-```
-
-### Phase 2: ANALYSE (20% der Zeit)
-```
-1. make clean && make -j$(nproc)        ← Baseline Build
-2. make check                            ← Pre-Commit Schnell-Check
-3. make fanalyzer                        ← GCC Deep Analysis
-4. make cppcheck                         ← Bug & UB Detection
-5. make flawfinder                       ← CWE/SANS Security
-6. thinker-with-files-gemini             ← bei komplexen Problemen
-```
-
-### Phase 3: IMPLEMENTIERUNG (30% der Zeit)
-```
-1. write_todos für Planung               ← bei 3+ Schritten
-2. str_replace für Änderungen            ← BEVORZUGT
-3. write_file NUR für neue Dateien
-4. Code-Stil des existierenden Codes MUSS 1:1 übernommen werden
-5. Alle Referenzen auf geänderte Symbole updaten
-6. Keine toten Imports, keine ungenutzten Variablen
-```
-
-### Phase 4: VALIDIERUNG (15% der Zeit)
-```
-1. make clean && make -j$(nproc)         ← MUSS 0 Fehler, 0 Warnings
-2. make check                            ← Pre-Commit Check
-3. make run                              ← QEMU Boot-Test (Shell erreichbar?)
-4. make harden-test                      ← Hardened Kernel testen
-5. code-reviewer-deepseek spawnen        ← PARALLEL zum Testen
-```
-
-### Phase 5: DOKUMENTATION + COMMIT (5% der Zeit)
-```
-1. README.md Changelog updaten
-2. ARCHITECTURE.md bei Architektur-Änderungen
-3. TESTING.md bei neuen Test-Methoden
-4. RULES.md / Jules.md bei neuen Regeln
-5. git add -A && git commit -m "..."
-6. git push origin master                ← NIEMALS --force!
-```
+### 6. Project Cleanliness MANDATORY
+- **NO** build artifacts in root directory! Run `make clean` after every build
+- **NO** `.o`/`.d` files outside `build/` or temporarily in `src/`
+- **NO** loose scripts in root — all scripts go in `scripts/`
+- **NO** duplicates! `doc/` was deleted — only ONE version of each doc exists
+- Empty directories (`fonts/`) must be deleted or filled immediately
+- After EVERY session: `make clean && git status` — root MUST be clean
+- Before EVERY commit: clean root, check `.gitignore`, run `git status`
 
 ---
 
-## 🔒 Security & Analyse — ALLE Tools
+## 📋 Complete Agent Workflow
 
-### Build-Tools
-| Befehl | Zweck | Dauer |
-|--------|-------|-------|
-| `make` | Normaler Build | 2s |
-| `make harden` | Gehärteter Build (stack-clash-protection) | 3s |
-| `make harden-test` | Hardened Build + QEMU Boot-Test | 15s |
-| `make check` | Pre-Commit Quick-Check (compile+cppcheck) | 5s |
+### Phase 1: CONTEXT (30% of time)
+```
+1. Read ARCHITECTURE.md + README.md
+2. Read relevant src/ files with read_files
+3. Check relevant include/ headers
+4. Spawn file-picker + code-searcher (in parallel!)
+5. Spawn researcher-web/docs (for external APIs/tools)
+6. Study existing similar code
+```
 
-### Security-Tools
-| Befehl | Zweck | Tool |
-|--------|-------|------|
-| `make fanalyzer` | Deep Analysis (use-after-free, overflow, NULL) | GCC |
-| `make flawfinder` | CWE/SANS Top 25 Security Patterns | flawfinder |
-| `make security` | Security Audit Summary | flawfinder |
+### Phase 2: ANALYSIS (20% of time)
+```
+1. make clean && make -j$(nproc)         ← Baseline build
+2. make check                             ← Pre-commit quick check
+3. make fanalyzer                         ← GCC deep analysis
+4. make cppcheck                          ← Bug & UB detection
+5. make flawfinder                        ← CWE/SANS security
+6. thinker-with-files-gemini              ← Complex problems
+```
 
-### Logic-Tools
-| Befehl | Zweck | Tool |
-|--------|-------|------|
-| `make cppcheck` | Bug & Undefined Behavior Detection | cppcheck |
-| `make clang-tidy` | Code Quality & Style | clang-tidy |
-| `make clang-analyzer` | Deep Logic Errors | Clang SA |
-| `make logic` | Logic Check Summary | cppcheck |
+### Phase 3: IMPLEMENTATION (30% of time)
+```
+1. write_todos for planning               ← 3+ steps
+2. str_replace for changes                ← PREFERRED
+3. write_file ONLY for new files
+4. Code style MUST match existing code 1:1
+5. Update all references to changed symbols
+6. No dead imports, no unused variables
+```
+
+### Phase 4: VALIDATION (15% of time)
+```
+1. make clean && make -j$(nproc)          ← MUST have 0 errors, 0 warnings
+2. make check                             ← Pre-commit check
+3. make run                               ← QEMU boot test (shell reachable?)
+4. make harden-test                       ← Test hardened kernel
+5. spawn code-reviewer-deepseek-flash     ← PARALLEL with testing
+```
+
+### Phase 5: DOCUMENTATION + COMMIT (5% of time)
+```
+1. Update README.md Changelog
+2. Update ARCHITECTURE.md on architecture changes
+3. Update TESTING.md on new test methods
+4. Update RULES.md / Jules.md on new rules
+5. make clean                           ← Clean root!
+6. git status                           ← Check: no .o/.d in root
+7. git add -A && git commit -m "..."
+8. git push origin master               ← NEVER --force!
+```
+
+---
+
+## 🔒 Security & Analysis — ALL Tools
+
+### Build Tools
+| Command | Purpose | Duration |
+|---------|---------|----------|
+| `make` | Normal build | 2s |
+| `make harden` | Hardened build (stack-clash-protection) | 3s |
+| `make harden-test` | Hardened build + QEMU boot test | 15s |
+| `make check` | Pre-commit quick check (compile+cppcheck) | 5s |
+
+### Security Tools
+| Command | Purpose | Tool |
+|---------|---------|------|
+| `make fanalyzer` | Deep analysis (use-after-free, overflow, NULL) | GCC |
+| `make flawfinder` | CWE/SANS Top 25 security patterns | flawfinder v2.0.20 |
+| `make security` | Security audit summary | flawfinder |
+
+### Logic Tools
+| Command | Purpose | Tool |
+|---------|---------|------|
+| `make cppcheck` | Bug & undefined behavior detection | cppcheck v2.17.1 |
+| `make clang-tidy` | Code quality & style | clang-tidy |
+| `make clang-analyzer` | Deep logic errors | Clang SA |
+| `make logic` | Logic check summary | cppcheck |
 
 ### Full Audit
-| Befehl | Zweck | Dauer |
-|--------|-------|-------|
+| Command | Purpose | Duration |
+|---------|---------|----------|
 | `make analyze` | cppcheck + flawfinder | 10s |
-| `make audit` | Voll-Audit: cppcheck + flawfinder + fanalyzer | 30s |
+| `make audit` | Full audit: cppcheck + flawfinder + fanalyzer | 30s |
+
+### Tool Installation (DO NOT use terminal sudo — use auth-helper.sh!)
+```bash
+# flawfinder (pip, no root needed)
+pip3 install --break-system-packages --user flawfinder
+
+# cppcheck (via auth-helper GUI popup)
+./scripts/auth-helper.sh sh -c "apt-get install -y cppcheck"
+```
 
 ---
 
-## 💿 ISO/Image-System Regeln
+## 💿 ISO/Image System Rules
 
-### ISO-Targets (NIE ändern ohne Absprache!)
-| Target | Beschreibung | Root? |
+### ISO Targets (NEVER change without approval!)
+| Target | Description | Root? |
 |--------|-------------|-------|
-| `make iso` | Auto: GUI→full, sonst→noroot | Auto |
-| `make iso-noroot` | Basis-Image (nur MBR+FAT32) | **NEIN** |
-| `make iso-full` | Volles Image mit Dateien | Ja (GUI) |
-| `make iso-verify` | Partition + FAT32 prüfen | Nein |
-| `make iso-test` | ISO in QEMU testen | Nein |
-| `make firmware` | RPi-Firmware downloaden | Nein |
+| `make iso` | Auto: GUI→full, else→noroot | Auto |
+| `make iso-noroot` | Base image (MBR+FAT32 only) | **NO** |
+| `make iso-full` | Full image with files | Yes (GUI) |
+| `make iso-verify` | Verify partition + FAT32 | No |
+| `make iso-test` | Test ISO in QEMU | No |
+| `make firmware` | Download RPi firmware | No |
 
-### ISO-Struktur (NICHT ändern!)
-- Datei: `build/vibecore.iso` (128 MB)
-- Format: MBR + FAT32 (**KEIN** ISO 9660!)
-- MBR: 440 Byte Boot-Code + Partitionstabelle + 0x55AA
-- Partition: FAT32, bootable, startet bei Sektor 2048
-- Enthält: kernel8.img, config.txt, bootcode.bin, start.elf, fixup.dat
+### ISO Structure (DO NOT change!)
+- File: `build/vibecore.iso` (128 MB)
+- Format: MBR + FAT32 (**NOT** ISO 9660!)
+- MBR: 440 byte boot code + partition table + 0x55AA
+- Partition: FAT32, bootable, starts at sector 2048
+- Contains: kernel8.img, config.txt, bootcode.bin, start.elf, fixup.dat
 
 ---
 
-## 🖥️ QEMU Regeln
+## 🖥️ QEMU Rules
 
-### QEMU-Targets
-| Befehl | Maschine | CPU | Display |
-|--------|----------|-----|---------|
+### QEMU Targets
+| Command | Machine | CPU | Display |
+|---------|---------|-----|---------|
 | `make run` | raspi3b | cortex-a53 | nographic |
 | `make run-gui` | raspi3b | cortex-a53 | GTK |
 | `make debug` | raspi3b | cortex-a53 | GDB :1234 |
 
-### QEMU-Regeln
-- **KEIN** VM-Direktboot! VibeCore braucht `-kernel` Flag
-- **KEIN** `-M virt` — muss `raspi3b` sein
-- Memory: **1G** Minimum
-- Immer `-serial stdio -nographic` für Console-Mode
-- ISO-Test: `-kernel kernel8.img -drive file=build/vibecore.iso,if=sd`
+### QEMU Rules
+- **NO** direct VM boot! VibeCore needs `-kernel` flag
+- **NO** `-M virt` — must be `raspi3b`
+- Memory: **1G** minimum
+- Always use `-serial stdio -nographic` for console mode
+- ISO test: `-kernel kernel8.img -drive file=build/vibecore.iso,if=sd`
 
 ---
 
-## 🚫 Absolute Verbote
+## 🚫 Absolute Prohibitions
 
-| # | Verbot | Grund |
-|---|--------|-------|
-| 1 | `sudo`/`su` im Terminal | Terminal-Korruption! |
-| 2 | Echter RPi Hardware-Zugriff | Pi bleibt unberührt |
-| 3 | `any`/`void*` Casts ohne Grund | Type-Safety |
-| 4 | `git push --force` | Datenverlust |
-| 5 | Build-Artefakte committen | .gitignore respektieren |
-| 6 | Compiler-Warnings ignorieren | `-Wall -Wextra -Werror` |
-| 7 | Compiler-Flags lockern | Security-Flags sind Pflicht |
-| 8 | `make install` ohne SD-Karte | Nur für echtes Flashen |
-| 9 | Ohne QEMU-Test commiten | `make run` muss funktionieren |
-| 10 | Doku veralten lassen | IMMER aktuell halten |
-| 11 | Build-Artefakte im Root liegen lassen | `make clean` nach jedem Build, Root MUSS sauber sein |
-| 12 | Lose Skripte oder Duplikate im Root | Alles in `scripts/`, keine doppelten Dateien |
+| # | Prohibition | Reason |
+|---|-------------|--------|
+| 1 | `sudo`/`su` in terminal | Terminal corruption! |
+| 2 | Real RPi hardware access | Pi stays untouched |
+| 3 | `any`/`void*` casts without reason | Type safety |
+| 4 | `git push --force` | Data loss |
+| 5 | Committing build artifacts | Respect .gitignore |
+| 6 | Ignoring compiler warnings | `-Wall -Wextra -Werror` |
+| 7 | Relaxing compiler flags | Security flags are mandatory |
+| 8 | `make install` without SD card | For real flashing only |
+| 9 | Committing without QEMU test | `make run` must work |
+| 10 | Letting docs go stale | ALWAYS keep current |
+| 11 | Leaving build artifacts in root | `make clean` after every build, root MUST be clean |
+| 12 | Loose scripts or duplicate files in root | Everything in `scripts/`, no duplicate files |
 
 ---
 
-## 📁 Projekt-Struktur (NIE ändern!)
+## 📁 Project Structure (NEVER change!)
 
 ```
 Vibe_Core_Labor/
-├── README.md              ← Haupt-Doku (DE)
-├── ARCHITECTURE.md        ← Architektur-Doku (EN)
-├── TESTING.md             ← Test-Guide
-├── RULES.md               ← DIESE DATEI
-├── Jules.md               ← Google Jules Regeln
-├── Makefile               ← Build-System (NIE zerstören!)
-├── linker.ld              ← Memory-Map
-├── config.txt             ← RPi Boot-Config
-├── .gitignore             ← Build-Artefakte ignoriert
-├── BRAINSTORM.md           ← Roadmap, Ideen, Vision
+├── README.md              ← Main documentation (EN)
+├── ARCHITECTURE.md        ← Architecture docs (EN)
+├── TESTING.md             ← Testing guide
+├── RULES.md               ← THIS FILE
+├── Jules.md               ← Google Jules rules
+├── BRAINSTORM.md          ← Roadmap, ideas, vision
+├── Makefile               ← Build system (NEVER break!)
+├── linker.ld              ← Memory map
+├── config.txt             ← RPi boot config
+├── .gitignore             ← Build artifacts ignored
 ├── .github/workflows/     ← CI/CD (build.yml)
-├── scripts/               ← ALLE Skripte (KEINE losen Skripte!)
-│   ├── auth-helper.sh     ← GUI-Auth (zenity/pkexec, KEIN Terminal!)
-│   └── mk-bootmbr.py      ← MBR-Boot-Code Generator
-├── src/                   ← Kernel (22 Dateien)
-├── include/               ← Header (22 Dateien)
-└── build/                 ← Build-Output (.gitignored!)
+├── scripts/               ← ALL scripts (NO loose scripts!)
+│   ├── auth-helper.sh     ← GUI auth (zenity/pkexec, NO terminal!)
+│   └── mk-bootmbr.py      ← MBR boot code generator
+├── src/                   ← Kernel (22 files)
+├── include/               ← Headers (22 files)
+└── build/                 ← Build output (.gitignored!)
 ```
 
 ---
 
-## 🐛 Bug-Fix Protokoll
+## 🐛 Bug Fix Protocol
 
 ```
-1. BUG FINDEN
-   ├── make fanalyzer          ← GCC Deep Analysis
-   ├── make cppcheck           ← Bug & UB Scan
-   ├── make flawfinder         ← Security Scan
-   └── thinker-with-files-gemini ← Deep Analysis
+1. FIND BUG
+   ├── make fanalyzer          ← GCC deep analysis
+   ├── make cppcheck           ← Bug & UB scan
+   ├── make flawfinder         ← Security scan
+   └── thinker-with-files-gemini ← Deep analysis
 
-2. BUG DOKUMENTIEREN
-   ├── Datei:Zeile
-   ├── Schweregrad (CRITICAL/HIGH/MEDIUM/LOW)
-   └── Beschreibung + Fix-Vorschlag
+2. DOCUMENT BUG
+   ├── File:Line
+   ├── Severity (CRITICAL/HIGH/MEDIUM/LOW)
+   └── Description + suggested fix
 
-3. FIX IMPLEMENTIEREN
-   ├── str_replace (bevorzugt)
-   └── Code-Stil 1:1 nachahmen
+3. IMPLEMENT FIX
+   ├── str_replace (preferred)
+   └── Code style 1:1 from existing code
 
-4. VALIDIEREN
-   ├── make clean && make      ← 0 Fehler
-   ├── make run                ← QEMU Boot
-   ├── make harden-test        ← Security Build
+4. VALIDATE
+   ├── make clean && make      ← 0 errors
+   ├── make run                ← QEMU boot
+   ├── make harden-test        ← Security build
    └── code-reviewer-deepseek  ← Review
 
-5. DOKU + COMMIT
-   ├── README.md Changelog updaten
-   ├── RULES.md bei neuen Regeln
-   ├── make clean         ← Root aufräumen!
-   ├── git status         ← Prüfen: keine .o/.d im Root
+5. DOCS + COMMIT
+   ├── Update README.md Changelog
+   ├── Update RULES.md with new rules
+   ├── make clean              ← Clean root!
+   ├── git status              ← Check: no .o/.d in root
    └── git commit + push
 ```
 
 ---
 
-## 🔒 Security-Checkliste (vor JEDEM Commit)
+## 🔒 Security Checklist (before EVERY commit)
 
-- [ ] `make clean && make -j$(nproc)` → **0 Fehler, 0 Warnings**
-- [ ] `make check` → Pre-Commit Check bestanden
-- [ ] `make run` → Bootet bis Shell-Prompt
-- [ ] `make harden-test` → Gehärteter Kernel bootet
-- [ ] Keine sensitiven Daten im Diff
-- [ ] `.gitignore` aktuell
-- [ ] **Root sauber**: keine `.o`, `.d`, `vibecore.iso` im Root
-- [ ] **Keine Duplikate**: JEDE Datei existiert NUR ein Mal
-- [ ] Keine `sudo`/`su` im Code
-- [ ] Stack-Canary intakt (`-fstack-protector-strong`)
-- [ ] `-mstrict-align` aktiv
-- [ ] README.md Changelog aktuell
+- [ ] `make clean && make -j$(nproc)` → **0 errors, 0 warnings**
+- [ ] `make check` → Pre-commit check passed
+- [ ] `make run` → Boots to shell prompt
+- [ ] `make harden-test` → Hardened kernel boots
+- [ ] No sensitive data in diff
+- [ ] `.gitignore` current
+- [ ] **Root clean**: no `.o`, `.d`, `vibecore.iso` in root
+- [ ] **No duplicates**: EVERY file exists only ONCE
+- [ ] `make cppcheck` → 0 critical issues
+- [ ] `make flawfinder` → 0 high-risk findings
+- [ ] No `sudo`/`su` in code
+- [ ] Stack canary intact (`-fstack-protector-strong`)
+- [ ] `-mstrict-align` active
+- [ ] README.md Changelog current
 
 ---
 
-## 🎓 Namens-Konventionen
+## 🎓 Naming Conventions
 
-| Typ | Konvention | Beispiel |
-|-----|-----------|---------|
-| Dateien | snake_case | `boot_anim.c` |
-| Funktionen | snake_case | `framebuffer_init()` |
-| Typen/Structs | PascalCase | `FramebufferInfo` |
-| Makros/Defines | UPPER_SNAKE | `FB_DEFAULT_WIDTH` |
-| Header-Guards | `_NAME_H` | `_KERNEL_H` |
-| Globale Variablen | g_ prefix | `g_fb_info` |
-| Static Functions | kein prefix | `pack32()` |
-| Enum-Werte | UPPER_SNAKE | `LOG_LEVEL_INFO` |
+| Type | Convention | Example |
+|------|-----------|---------|
+| Files | snake_case | `boot_anim.c` |
+| Functions | snake_case | `framebuffer_init()` |
+| Types/Structs | PascalCase | `FramebufferInfo` |
+| Macros/Defines | UPPER_SNAKE | `FB_DEFAULT_WIDTH` |
+| Header guards | `_NAME_H` | `_KERNEL_H` |
+| Global variables | g_ prefix | `g_fb_info` |
+| Static functions | no prefix | `pack32()` |
+| Enum values | UPPER_SNAKE | `LOG_LEVEL_INFO` |
 
-## 🏷️ Commit-Message-Format
+## 🏷️ Commit Message Format
 
 ```
-<Bereich>: <Kurzbeschreibung>
+<Area>: <Short description>
 
 <Details (optional)>
 
-Beispiele:
-  Docs: README + ARCHITECTURE aktualisiert
-  Build: Security-Tools (harden, fanalyzer, audit)
+Examples:
+  Docs: Updated README + ARCHITECTURE to English
+  Build: Added security tools (harden, fanalyzer, audit)
   Fix: mailbox_call response code check
-  Kernel: Boot-Animation Alignment-Fault behoben
+  Kernel: Fixed boot animation alignment fault
 ```
 
 ---
 
-## 📊 Projekt-Kennzahlen (Referenz)
+## 📊 Project Metrics (Reference)
 
-| Metrik | Wert |
-|--------|------|
-| Kernel-Größe | 62 KB |
-| Quellcode-Dateien | 22 (.c + .S) + 22 (.h) |
-| Build-Zeit | ~2s (parallel) |
-| Boot-Zeit (QEMU) | ~1.6s |
-| Grafik | 1024×768×32 |
-| Heap | 1 MB + 64 KB Emergency |
+| Metric | Value |
+|--------|-------|
+| Kernel size | 62 KB |
+| Source files | 22 (.c + .S) + 22 (.h) |
+| Build time | ~2s (parallel) |
+| Boot time (QEMU) | ~1.6s |
+| Graphics | 1024×768×32 |
+| Heap | 1 MB + 64 KB emergency |
 | Stack | 128 KB |
-| Max Tasks | 32 |
+| Max tasks | 32 |
 
 ---
 
-_Letzte Aktualisierung: 15. Juni 2026 — VibeCore Labs_
+_Last updated: June 15, 2026 — VibeCore Labs_

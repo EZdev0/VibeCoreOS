@@ -2,7 +2,7 @@
 
 [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
 
-**Bare-Metal ARM64 Betriebssystem für Raspberry Pi 3B/4B** — komplett in C und ARMv8 Assembly von Grund auf gebaut. Kein Linux-Kernel, kein Userspace, keine externen Abhängigkeiten. Nur purer Bare-Metal-Code, direkt auf dem Cortex-A53/A72.
+**Bare-metal ARM64 operating system for Raspberry Pi 3B/4B** — built entirely from scratch in C and ARMv8 Assembly. No Linux kernel, no userspace, no external dependencies. Just pure bare-metal code, running directly on the Cortex-A53/A72.
 
 ```
 ╔══════════════════════════════════════════════════╗
@@ -14,182 +14,191 @@
 
 ---
 
-## 🚀 Schnellstart
+## 🚀 Quick Start
 
 ```bash
-# Voraussetzungen
+# Prerequisites
 sudo apt install gcc-aarch64-linux-gnu qemu-system-arm
 
-# Bauen (62 KB Kernel)
+# Build (62 KB kernel)
 make -j$(nproc)
 
-# In QEMU starten (Terminal)
+# Run in QEMU (terminal)
 make run
 
-# In QEMU mit Grafikfenster
+# Run in QEMU with graphics window
 make run-gui
 
-# ISO/Image erstellen (128 MB, bootfähig)
+# Create ISO/image (128 MB, bootable)
 make iso
 
-# ISO verifizieren
+# Verify ISO
 make iso-verify
 ```
 
 ---
 
-## 📋 Build-Kommandos
+## 📋 Build Commands
 
-| Befehl | Beschreibung |
-|--------|-------------|
-| `make` / `make -j$(nproc)` | Kernel bauen (parallel, alle Kerne) |
-| `make run` | QEMU raspi3b — serielle Konsole (KEIN VM-Boot!) |
-| `make run-gui` | QEMU mit GTK-Grafikfenster |
-| `make debug` | QEMU mit GDB-Server auf Port 1234 |
-| `make firmware` | RPi-Firmware downloaden (einmalig nötig) |
-| `make iso` | Bootfähiges ISO (128 MB, auto: GUI→full / headless→base) |
-| `make iso-noroot` | Basis-ISO OHNE Root-Rechte, OHNE Passwort |
-| `make iso-full` | Volles ISO mit Dateien (braucht Desktop-GUI für Auth-Popup) |
-| `make iso-verify` | ISO verifizieren: Partitionstabelle + FAT32-Signatur |
-| `make iso-test` | ISO in QEMU testen (Kernel direkt + ISO als SD) |
-| `make iso-flash` | ISO auf SD-Karte flashen (Desktop-GUI-Auth) |
-| `make clean` | Build-Artefakte löschen |
-| `make help` | Alle Kommandos anzeigen |
-| `make cppcheck` | Statische C-Analyse |
-| `make flawfinder` | Security-Audit (CWE/SANS Top 25) |
-| `make clang-tidy` | Code-Qualität prüfen |
+| Command | Description |
+|---------|-------------|
+| `make` / `make -j$(nproc)` | Build kernel (parallel, all cores) |
+| `make run` | QEMU raspi3b — serial console (NOT VM boot!) |
+| `make run-gui` | QEMU with GTK graphics window |
+| `make debug` | QEMU with GDB server on port 1234 |
+| `make firmware` | Download RPi firmware (one-time) |
+| `make iso` | Bootable ISO (128 MB, auto: GUI→full / headless→base) |
+| `make iso-noroot` | Base ISO WITHOUT root privileges, NO password |
+| `make iso-full` | Full ISO with files (needs desktop GUI for auth popup) |
+| `make iso-verify` | Verify ISO: partition table + FAT32 signature |
+| `make iso-test` | Test ISO in QEMU (kernel direct + ISO as SD) |
+| `make iso-flash` | Flash ISO to SD card (desktop GUI auth) |
+| `make clean` | Remove build artifacts |
+| `make help` | Show all commands |
+| `make check` | Pre-commit quick check (compile + cppcheck) |
+| `make harden` | Hardened build (stack-clash-protection) |
+| `make harden-test` | Hardened build + QEMU boot test |
+| `make cppcheck` | Static C analysis (bug & UB detection) |
+| `make flawfinder` | Security audit (CWE/SANS Top 25) |
+| `make fanalyzer` | GCC deep analysis (use-after-free, overflow, NULL) |
+| `make security` | Security audit summary |
+| `make logic` | Logic check summary |
+| `make audit` | Full audit: cppcheck + flawfinder + fanalyzer |
 | `make analyze` | cppcheck + flawfinder |
+| `make clang-tidy` | Code quality linting |
+| `make clang-analyzer` | Clang deep logic errors |
 
 ---
 
-## 🐚 Shell-Kommandos
+## 🐚 Shell Commands
 
-| Befehl | Alias | Beschreibung |
-|--------|-------|-------------|
-| `help` | — | Alle Kommandos anzeigen |
-| `clear` | — | Terminal löschen |
-| `info` | `sysinfo` | System-Informationen |
-| `mem` | `memory` | Speicher-Statistiken (Heap, Stack-Canary) |
-| `tasks` | `ps` | Scheduler-Taskliste |
-| `fs` | `df` | Dateisystem-Info |
-| `version` | `ver` | OS-Version + Build-Info |
-| `gui` | — | Desktop/Framebuffer-Status |
-| `log` | `dmesg` | Kernel-Log-Ringpuffer ausgeben |
-| `crash` | `panic` | Crash-Screen testen (manuell) |
-| `reboot` | — | System-Neustart |
-| `fsck` | `check` | Dateisystem-Check |
-| `trash` | — | Papierkorb-Inhalt anzeigen |
-| `versions` | `verlist` | Dateiversionen auflisten |
-| `recover <name>` | — | Datei aus Papierkorb wiederherstellen |
-| `recovery` | — | Grafischen Recovery-Screen öffnen |
-| `snapshot` | — | System-Backup erstellen |
-| `protect` | — | Geschützte Dateien anzeigen |
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `help` | — | Show all available commands |
+| `clear` | — | Clear terminal |
+| `info` | `sysinfo` | System information |
+| `mem` | `memory` | Memory statistics (heap, stack canary) |
+| `tasks` | `ps` | Scheduler task list |
+| `fs` | `df` | Filesystem info |
+| `version` | `ver` | OS version + build info |
+| `gui` | — | Desktop/framebuffer status |
+| `log` | `dmesg` | Kernel log ring buffer dump |
+| `crash` | `panic` | Test crash screen (manual trigger) |
+| `reboot` | — | System restart |
+| `fsck` | `check` | Filesystem integrity check |
+| `trash` | — | Show trash bin contents |
+| `versions` | `verlist` | List file versions |
+| `recover <name>` | — | Restore file from trash |
+| `recovery` | — | Open graphical recovery screen |
+| `snapshot` | — | Create system backup |
+| `protect` | — | Show protected files |
 
 ---
 
-## 🏗️ Projektstruktur
+## 🏗️ Project Structure
 
 ```
 Vibe_Core_Labor/
-├── README.md                  ← Diese Datei
-├── RULES.md                   ← Projekt-Regeln & KI-Agent-Vorgehen
-├── Jules.md                   ← Google Jules AI Agent Regeln
-├── ARCHITECTURE.md            ← Detaillierte Architektur-Doku (EN)
-├── TESTING.md                 ← Test-Guide & CI-Setup
-├── Makefile                   ← Build-System (parallel, auth, ISO)
-├── linker.ld                  ← Linker-Script (Memory-Map)
-├── config.txt                 ← RPi Boot-Konfiguration
-├── BRAINSTORM.md             ← Roadmap, Ideen & Zukunftsvision
+├── README.md                  ← This file (EN)
+├── RULES.md                   ← Project rules & AI agent guide (EN)
+├── Jules.md                   ← Google Jules AI agent rules (EN)
+├── ARCHITECTURE.md            ← Detailed architecture docs (EN)
+├── TESTING.md                 ← Testing guide & CI setup (EN)
+├── BRAINSTORM.md              ← Roadmap, ideas & future vision (EN)
+├── Makefile                   ← Build system (parallel, auth, ISO)
+├── linker.ld                  ← Linker script (memory map)
+├── config.txt                 ← RPi boot configuration
 ├── .github/                   ← GitHub Actions CI/CD
 │   └── workflows/
-│       └── build.yml          ← Build, Analyze, QEMU-Test, ISO
-├── scripts/                   ← ALLE Skripte & Tools
-│   ├── auth-helper.sh         ← Desktop-GUI Passwort-Popup (zenity/pkexec)
-│   └── mk-bootmbr.py          ← MBR-Boot-Code Generator (VM-Kompatibilität)
-├── src/                       ← Kernel-Quellcode (22 Dateien)
-│   ├── boot.S                 ← ARMv8 Assembly-Einstiegspunkt
-│   ├── kernel.c               ← Haupt-Initialisierung
-│   ├── framebuffer.c          ← 128-bit STP Display-Treiber
-│   ├── mailbox.c              ← ARM↔GPU Kommunikation
-│   ├── interrupt.c            ← Exception-Dispatch + Crash-Screen
-│   ├── uart.c                 ← PL011 UART-Treiber
-│   ├── timer.c                ← System-Timer (1 kHz Tick)
-│   ├── allocator.c            ← Speicher-Allokator (graceful OOM)
-│   ├── scheduler.c            ← BORE-Scheduler
-│   ├── mmu.c                  ← ARMv8 Page-Tables (aktuell deaktiviert)
-│   ├── fs.c                   ← FAT32-Dateisystem (RAM-Disk)
-│   ├── crc32.c                ← CRC32 Hardware-Hash
-│   ├── recovery.c             ← 8-Subsystem Recovery-Engine
-│   ├── crashlog.c             ← Crash-Report-Writer (BSS-Buffer)
-│   ├── klog.c                 ← Kernel-Logging (dmesg Ringpuffer)
-│   ├── gui.c                  ← Desktop-Umgebung
-│   ├── gui_welcome.c          ← Grafischer Willkommens-Screen
-│   ├── gui_recovery.c         ← Grafischer Recovery-Screen
-│   ├── boot_anim.c            ← Boot-Animation (20 Frames)
-│   ├── shell.c                ← Interaktive Kommando-Shell
-│   ├── setup.c                ← First-Boot Auto-Konfiguration│   └── string.c               ← String/Memory-Utilities
-├── include/                   ← Header-Dateien (22 Dateien)
-│   ├── types.h                ← Typdefinitionen + Makros
-│   ├── kernel.h               ← Globale Kernel-Definitionen
-│   ├── peripherals.h          ← BCM2837 MMIO-Adressen
-│   ├── framebuffer.h          ← Grafik-API
-│   ├── mailbox.h              ← Mailbox-Tag-Definitionen
-│   └── ...                    ← (weitere 17 Header)
-├── build/                     ← Build-Output & Firmware
-│   ├── vibecore.iso           ← Bootfähiges Image (128 MB, MBR+FAT32)
-│   ├── bootcode.bin           ← RPi GPU Bootloader (52 KB)
-│   ├── start.elf              ← RPi GPU Firmware (2.9 MB)
-│   └── fixup.dat              ← GPU Speicher-Konfiguration (7 KB)
+│       └── build.yml          ← Build, analyze, QEMU test, ISO
+├── scripts/                   ← ALL scripts & tools
+│   ├── auth-helper.sh         ← Desktop GUI password popup (zenity/pkexec)
+│   └── mk-bootmbr.py          ← MBR boot code generator (VM compatibility)
+├── src/                       ← Kernel source code (22 files)
+│   ├── boot.S                 ← ARMv8 assembly entry point
+│   ├── kernel.c               ← Main initialization
+│   ├── framebuffer.c          ← 128-bit STP display driver
+│   ├── mailbox.c              ← ARM↔GPU communication
+│   ├── interrupt.c            ← Exception dispatch + crash screen
+│   ├── uart.c                 ← PL011 UART driver
+│   ├── timer.c                ← System timer (1 kHz tick)
+│   ├── allocator.c            ← Memory allocator (graceful OOM)
+│   ├── scheduler.c            ← BORE scheduler
+│   ├── mmu.c                  ← ARMv8 page tables (currently disabled)
+│   ├── fs.c                   ← FAT32 filesystem (RAM disk)
+│   ├── crc32.c                ← CRC32 hardware hash
+│   ├── recovery.c             ← 8-subsystem recovery engine
+│   ├── crashlog.c             ← Crash report writer (BSS buffer)
+│   ├── klog.c                 ← Kernel logging (dmesg ring buffer)
+│   ├── gui.c                  ← Desktop environment
+│   ├── gui_welcome.c          ← Graphical welcome screen
+│   ├── gui_recovery.c         ← Graphical recovery screen
+│   ├── boot_anim.c            ← Boot animation (20 frames)
+│   ├── shell.c                ← Interactive command shell
+│   ├── setup.c                ← First-boot auto-configuration
+│   └── string.c               ← String/memory utilities
+├── include/                   ← Header files (22 files)
+│   ├── types.h                ← Type definitions + macros
+│   ├── kernel.h               ← Global kernel definitions
+│   ├── peripherals.h          ← BCM2837 MMIO addresses
+│   ├── framebuffer.h          ← Graphics API
+│   ├── mailbox.h              ← Mailbox tag definitions
+│   └── ...                    ← (17 more headers)
+├── build/                     ← Build output & firmware
+│   ├── vibecore.iso           ← Bootable image (128 MB, MBR+FAT32)
+│   ├── bootcode.bin           ← RPi GPU bootloader (52 KB)
+│   ├── start.elf              ← RPi GPU firmware (2.9 MB)
+│   └── fixup.dat              ← GPU memory configuration (7 KB)
 ```
 
 ---
 
-## 💿 ISO/Image-System
+## 💿 ISO/Image System
 
-### Übersicht
+### Overview
 
-Das Build-System erstellt `build/vibecore.iso` — ein **MBR+FAT32 Disk-Image**, kein ISO 9660.
-Das ist das gleiche Format wie Ubuntu-RPi-Images und Raspberry Pi OS.
+The build system creates `build/vibecore.iso` — an **MBR+FAT32 disk image**, NOT an ISO 9660.
+This is the same format as Ubuntu RPi images and Raspberry Pi OS.
 
-### ISO-Targets
+### ISO Targets
 
-| Target | Beschreibung | Root? | GUI? |
+| Target | Description | Root? | GUI? |
 |--------|-------------|-------|------|
-| `make iso` | Auto: GUI erkannt → `iso-full`, sonst → `iso-noroot` | Auto | Auto |
-| `make iso-full` | Volles Image mit allen Dateien (128 MB) | Ja (losetup) | Ja (zenity) |
-| `make iso-noroot` | Basis-Image, nur partitioniert + formatiert | **NEIN** | Nein |
+| `make iso` | Auto: GUI detected → `iso-full`, else → `iso-noroot` | Auto | Auto |
+| `make iso-full` | Full image with all files (128 MB) | Yes (losetup) | Yes (zenity) |
+| `make iso-noroot` | Base image, partitioned + formatted only | **NO** | No |
 
-### Image-Inhalt (iso-full)
+### Image Contents (iso-full)
 
 ```
-MBR (Boot-Code + Partitionstabelle)
+MBR (boot code + partition table)
 └── Partition 1 (FAT32, bootable, 127 MB)
-    ├── kernel8.img      (62 KB)  — Betriebssystem-Kernel
-    ├── config.txt        (682 B)  — Boot-Konfiguration
-    ├── bootcode.bin      (52 KB)  — GPU First-Stage Bootloader
-    ├── start.elf         (2.9 MB) — GPU Firmware
-    └── fixup.dat         (7 KB)   — GPU Speicher-Konfiguration
+    ├── kernel8.img      (62 KB)  — Operating system kernel
+    ├── config.txt        (682 B)  — Boot configuration
+    ├── bootcode.bin      (52 KB)  — GPU first-stage bootloader
+    ├── start.elf         (2.9 MB) — GPU firmware
+    └── fixup.dat         (7 KB)   — GPU memory config
 ```
 
-### MBR-Boot-Code
+### MBR Boot Code
 
-Das Image enthält jetzt **440 Byte MBR-Boot-Code** (generiert von `scripts/mk-bootmbr.py`).
-Der Code zeigt eine BIOS-Meldung und hält an — das macht das Image für VMs erkennbar.
+The image contains **440 bytes of MBR boot code** (generated by `scripts/mk-bootmbr.py`).
+The code displays a BIOS message and halts — making the image recognizable by VMs.
 
 ```
-Bytes 0-439:   Boot-Code (x86 real-mode, "VibeCore OS ARM64 — Boot via QEMU: make run")
-Bytes 440-445: Disk-Signatur
-Bytes 446-509: Partitionstabelle (sfdisk)
-Bytes 510-511: Boot-Signatur (0x55 0xAA) ✅
+Bytes 0-439:   Boot code (x86 real-mode, "VibeCore OS ARM64 — Boot via QEMU: make run")
+Bytes 440-445: Disk signature
+Bytes 446-509: Partition table (sfdisk)
+Bytes 510-511: Boot signature (0x55 0xAA) ✅
 ```
 
-### Flashen auf SD-Karte
+### Flashing to SD Card
 
 ```bash
-# Mit auth-helper (Desktop-GUI Popup)
+# With auth-helper (desktop GUI popup)
 make iso-flash SDCARD=/dev/mmcblk0
 
-# Manuell
+# Manual
 dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
 ```
 
@@ -197,79 +206,79 @@ dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
 
 ## 🖥️ VM / Emulator
 
-### WICHTIG: Kein VM-Direktboot!
+### IMPORTANT: No Direct VM Boot!
 
-VibeCore OS ist ein **Bare-Metal-Kernel** für Raspberry Pi. Es bootet NICHT in einer VM wie VirtualBox oder virt-manager, weil:
+VibeCore OS is a **bare-metal kernel** for Raspberry Pi. It does NOT boot in a VM like VirtualBox or virt-manager because:
 
-1. **UEFI-Firmware** (virt-manager, GNOME Boxes) sucht nach `BOOTAA64.EFI` → nicht vorhanden
-2. **BIOS** führt MBR-Code aus → zeigt nur Meldung, kein echter Boot
-3. Der Raspberry Pi bootet über **GPU-Firmware** → kein BIOS, kein UEFI
+1. **UEFI firmware** (virt-manager, GNOME Boxes) looks for `BOOTAA64.EFI` → not present
+2. **BIOS** executes MBR code → shows message only, no real boot
+3. Raspberry Pi boots via **GPU firmware** → no BIOS, no UEFI
 
-### ✅ Richtiger Weg: QEMU Direkt-Boot
-
-```bash
-make run        # Terminal-Modus
-make run-gui    # Mit Grafikfenster
-```
-
-Das funktioniert, weil QEMU mit `-kernel` den Kernel direkt lädt und die RPi-Hardware emuliert — ohne BIOS/UEFI.
-
-### 🔧 Auth-Helper (Kein Terminal-Passwort!)
+### ✅ Correct Way: QEMU Direct Boot
 
 ```bash
-scripts/auth-helper.sh <befehl>
+make run        # Terminal mode
+make run-gui    # With graphics window
 ```
 
-Der Auth-Helper:
-- Zeigt **NUR Desktop-GUI Popups** (zenity oder pkexec)
-- **KEIN Terminal-Passwort** — verhindert Terminal-Korruption
-- **5-Minuten Cache** — ein Popup pro Build-Session
-- Wenn keine GUI → klare Fehlermeldung, kein Blockieren
+This works because QEMU uses `-kernel` to load the kernel directly and emulates RPi hardware — without BIOS/UEFI.
+
+### 🔧 Auth Helper (No Terminal Password!)
+
+```bash
+scripts/auth-helper.sh <command>
+```
+
+The auth helper:
+- Shows **ONLY desktop GUI popups** (zenity or pkexec)
+- **NO terminal password** — prevents terminal corruption
+- **5-minute cache** — one popup per build session
+- If no GUI → clear error message, no blocking
 
 ---
 
-## 🏛️ Architektur
+## 🏛️ Architecture
 
-### Boot-Sequenz
+### Boot Sequence
 
 ```
-Power-On → GPU lädt kernel8.img → boot.S (_start)
-  → BSS nullen → Stack init → FP/SIMD enable
+Power-On → GPU loads kernel8.img → boot.S (_start)
+  → Zero BSS → Init stack → Enable FP/SIMD
   → kernel_main():
-      0.  UART           (Debug-Serial, 115200 8N1)
-      0.5 klog           (Kernel-Logging Ringpuffer)
-      1.  Timer          (System-Timer, 1 kHz)
+      0.  UART           (Debug serial, 115200 8N1)
+      0.5 klog           (Kernel logging ring buffer)
+      1.  Timer          (System timer, 1 kHz)
       2.  Framebuffer    (Mailbox-GPU, 1024×768 32-bit)
-      3.  Boot-Animation (20 Frames, Gradient-Progressbar)
-      4.  Allocator      (Graceful OOM, 64KB Emergency)
-      5.  MMU            (aktuell deaktiviert)
-      6.  Scheduler      (BORE-inspired, 32 Tasks)
-      7.  CRC32          (Self-Test)
-      8.  Filesystem     (FAT32 RAM-Disk)
-      9.  Recovery       (8 Subsysteme)
-      10. Snapshots      (Auto-Backup bei Boot)
-      11. GUI/Desktop    (Framebuffer-Desktop)
-      12. Crash-Log      (Vorherige Crashes prüfen)
-      13. Welcome-Screen (Grafisch, ENTER drücken)
-      14. Shell          (Interaktiv, 17+ Kommandos)
+      3.  Boot Animation (20 frames, gradient progress bar)
+      4.  Allocator      (Graceful OOM, 64KB emergency)
+      5.  MMU            (currently disabled)
+      6.  Scheduler      (BORE-inspired, 32 tasks)
+      7.  CRC32          (Self-test)
+      8.  Filesystem     (FAT32 RAM disk)
+      9.  Recovery       (8 subsystems)
+      10. Snapshots      (Auto-backup at boot)
+      11. GUI/Desktop    (Framebuffer desktop)
+      12. Crash Log      (Check previous crashes)
+      13. Welcome Screen (Graphical, press ENTER)
+      14. Shell          (Interactive, 17+ commands)
 ```
 
-### Memory-Layout
+### Memory Layout
 
 ```
 0x00000000 ┌──────────────────────────┐
            │  GPU / Peripherals        │
 0x00080000 ├──────────────────────────┤
-           │  .text.boot               │  ← Boot-Code
+           │  .text.boot               │  ← Boot code
            │  .text / .rodata / .data  │  ← Kernel
            │  .bss (zero-init)         │
            ├──────────────────────────┤
-           │  GUARD PAGE (4 KB)        │  ← Stack-Schutz
+           │  GUARD PAGE (4 KB)        │  ← Stack protection
            ├──────────────────────────┤
-           │  STACK (128 KB)           │  ← Wächst nach unten
+           │  STACK (128 KB)           │  ← Grows downward
            ├──────────────────────────┤
            │  HEAP (1 MB)              │  ← kmalloc/kzalloc
-           │  EMERGENCY (64 KB)        │  ← Crash-Diagnostik
+           │  EMERGENCY (64 KB)        │  ← Crash diagnostics
            ├──────────────────────────┤
            │  Framebuffer (GPU-alloc)  │  ← 0x3C100000
            └──────────────────────────┘
@@ -277,102 +286,107 @@ Power-On → GPU lädt kernel8.img → boot.S (_start)
 
 ---
 
-## 📊 Statistiken
+## 📊 Statistics
 
-| Metrik | Wert |
-|--------|------|
-| Kernel-Größe | 62 KB |
-| Quellcode-Dateien | 22 (.c + .S) + 22 (.h) = 44 |
-| Build-Zeit (parallel) | ~2 Sekunden |
-| Boot-Zeit (QEMU) | ~1.6 Sekunden |
-| Grafik-Auflösung | 1024×768 (32-bit ARGB) |
-| Heap-Größe | 1 MB + 64 KB Emergency |
-| Stack-Größe | 128 KB |
-| Max Tasks | 32 |
-| Idle-CPU | WFI Sleep (~0%) |
+| Metric | Value |
+|--------|-------|
+| Kernel size | 62 KB |
+| Source files | 22 (.c + .S) + 22 (.h) = 44 |
+| Build time (parallel) | ~2 seconds |
+| Boot time (QEMU) | ~1.6 seconds |
+| Graphics resolution | 1024×768 (32-bit ARGB) |
+| Heap size | 1 MB + 64 KB emergency |
+| Stack size | 128 KB |
+| Max tasks | 32 |
+| Idle CPU | WFI sleep (~0%) |
 
 ---
 
-## 🐛 Bekannte Bugs & Status
+## 🐛 Known Bugs & Status
 
-### Kürzlich behoben (2026-06-15)
+### Recently Fixed (2026-06-15)
 
-| Bug | Datei | Fix |
-|-----|-------|-----|
-| `mailbox_call` prüfte falschen Return-Wert | `mailbox.c` | `buffer[1] == MBOX_RESPONSE` statt `result == 0` |
-| GPU-Adresse aus falschem Slot gelesen | `framebuffer.c` | `buf[23]` (base) + `buf[24]` (size) statt `buf[22]` |
-| `framebuffer_fillrect` Alignment-Fault (Device-Memory) | `framebuffer.c` | `IS_ALIGNED(buf, 8)` Check + 32-bit Fallback |
-| ISO-Dateiendung `.img` statt `.iso` | `Makefile` | Umbenannt auf `build/vibecore.iso` |
-| MBR ohne Boot-Code → VM "not bootable" | `mk-bootmbr.py` | 440-Byte MBR-Boot-Code generiert |
-| IRQ-Endlosschleife bei unbekannten IRQs | `interrupt.c` | Write-1-to-Clear + dmb Barrier |
-| `snprintf_local` Buffer-Overflow | `interrupt.c` | `max == 0` Guard vor Write |
-| Auth-Helper Terminal-Fallback | `auth-helper.sh` | Nur noch Desktop-GUI |
+| Bug | File | Fix |
+|-----|------|-----|
+| `mailbox_call` checked wrong return value | `mailbox.c` | `buffer[1] == MBOX_RESPONSE` instead of `result == 0` |
+| GPU address read from wrong slot | `framebuffer.c` | `buf[23]` (base) + `buf[24]` (size) instead of `buf[22]` |
+| `framebuffer_fillrect` alignment fault (device memory) | `framebuffer.c` | `IS_ALIGNED(buf, 8)` check + 32-bit fallback |
+| ISO extension `.img` instead of `.iso` | `Makefile` | Renamed to `build/vibecore.iso` |
+| MBR without boot code → VM "not bootable" | `mk-bootmbr.py` | 440-byte MBR boot code generated |
+| IRQ infinite loop on unknown IRQs | `interrupt.c` | Write-1-to-clear + dmb barrier |
+| `snprintf_local` buffer overflow | `interrupt.c` | `max == 0` guard before write |
+| Auth-helper terminal fallback | `auth-helper.sh` | Desktop GUI only |
 
 ---
 
 ## 🔒 Security
 
-| Feature | Implementierung |
+| Feature | Implementation |
 |---------|----------------|
-| Stack-Schutz | `-fstack-protector-strong` + `__stack_chk_fail()` |
-| NULL-Pointer-Check | `-fno-delete-null-pointer-checks` |
-| Frame-Pointer | `-fno-omit-frame-pointer` (Stack-Trace) |
-| Strikte Ausrichtung | `-mstrict-align` (ARMv8 Alignment-Trap) |
-| CRC32-Integrität | Auto-Verify bei jedem `fs_read_file()` |
-| Journal-Atomicität | Commit-Marker verhindern partielle Schreibvorgänge |
-| OOM-Resilienz | `kmalloc()` returned NULL, kein Panic |
-| Stack-Canary | Prüfung zwischen Stack und Heap |
-| Crash-Isolation | System stoppt bei Crash (keine Datenkorruption) |
-| WFI-Polling | Wait-For-Interrupt statt Busy-Spin |
+| Stack protection | `-fstack-protector-strong` + `__stack_chk_fail()` |
+| NULL pointer check | `-fno-delete-null-pointer-checks` |
+| Frame pointer | `-fno-omit-frame-pointer` (stack trace) |
+| Strict alignment | `-mstrict-align` (ARMv8 alignment trap) |
+| CRC32 integrity | Auto-verify on every `fs_read_file()` |
+| Journal atomicity | Commit markers prevent partial writes |
+| OOM resilience | `kmalloc()` returns NULL, no panic |
+| Stack canary | Check between stack and heap |
+| Crash isolation | System halts on crash (no data corruption) |
+| WFI polling | Wait-For-Interrupt instead of busy-spin |
+| Stack clash protection | `-fstack-clash-protection` (on harden build) |
+| Static security audit | `make flawfinder` (CWE/SANS Top 25) |
+| Deep GCC analysis | `make fanalyzer` (use-after-free, overflow, NULL) |
+| Bug detection | `make cppcheck` (undefined behavior, memory leaks) |
 
 ---
 
-## ⚡ Performance-Optimierungen
+## ⚡ Performance Optimizations
 
-| Optimierung | Beschleunigung | Technik |
-|------------|---------------|---------|
-| 128-bit STP Clear | ~8× | ARMv8 Store-Pair, 4× unrolled |
-| 64-bit Fillrect | ~2× | 2 Pixel pro Schreibzugriff |
-| Gradient Row Caching | ~w× | Farbe einmal pro Zeile berechnen |
-| WFI Polling | ~99% CPU | Wait-For-Interrupt statt Spin |
-| Parallel Build | ~nproc× | `make -j$(nproc)` |
+| Optimization | Speedup | Technique |
+|-------------|---------|-----------|
+| 128-bit STP clear | ~8× | ARMv8 store-pair, 4× unrolled |
+| 64-bit fillrect | ~2× | 2 pixels per write operation |
+| Gradient row caching | ~w× | Compute color once per row |
+| WFI polling | ~99% CPU | Wait-For-Interrupt instead of spin |
+| Parallel build | ~nproc× | `make -j$(nproc)` |
 
 ---
 
-## 🔧 Abhängigkeiten
+## 🔧 Dependencies
 
 ```bash
-# Pflicht (Build)
-gcc-aarch64-linux-gnu          # ARM64 Cross-Compiler
-binutils-aarch64-linux-gnu     # Assembler, Linker, Objcopy
+# Mandatory (build)
+gcc-aarch64-linux-gnu          # ARM64 cross compiler
+binutils-aarch64-linux-gnu     # Assembler, linker, objcopy
 
-# Empfohlen (Test)
-qemu-system-arm                # QEMU Emulation
+# Recommended (test)
+qemu-system-arm                # QEMU emulation
 
-# Optional (Analyse)
-cppcheck                       # Statische C-Analyse
-flawfinder                     # Security-Scan
+# Recommended (analysis)
+cppcheck                       # Static C analysis (v2.17.1)
+flawfinder                     # Security scan (v2.0.20)
+                              # Install: pip3 install --break-system-packages --user flawfinder
 
-# Optional (ISO/Image)
+# Optional (ISO/image)
 dosfstools                     # mkfs.fat
-python3                        # MBR-Generator
+python3                        # MBR generator
 
-# Optional (Desktop Auth)
-zenity                         # GUI-Passwort-Dialog
+# Optional (desktop auth)
+zenity                         # GUI password dialog
 ```
 
 ---
 
-## 📚 Dokumentation
+## 📚 Documentation
 
-| Dokument | Inhalt |
+| Document | Content |
 |----------|--------|
-| [README.md](README.md) | Diese Datei — Übersicht & Schnellstart |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Vollständige Architektur: Boot, Speicher, Subsysteme (EN) |
-| [TESTING.md](TESTING.md) | Test-Pyramide: Kompilierung, Analyse, QEMU, Hardware |
-| [RULES.md](RULES.md) | Projekt-Regeln für Codebuff/Buffy KI-Agent |
-| [Jules.md](Jules.md) | Regeln für Google's Jules AI Agent |
-| [BRAINSTORM.md](BRAINSTORM.md) | Roadmap, Ideen & Zukunftsvision |
+| [README.md](README.md) | This file — overview & quick start |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Complete architecture: boot, memory, subsystems |
+| [TESTING.md](TESTING.md) | Test pyramid: compilation, analysis, QEMU, hardware |
+| [RULES.md](RULES.md) | Project rules for Codebuff/Buffy AI agent |
+| [Jules.md](Jules.md) | Rules for Google's Jules AI agent |
+| [BRAINSTORM.md](BRAINSTORM.md) | Roadmap, ideas & future vision |
 
 ---
 
@@ -380,36 +394,37 @@ zenity                         # GUI-Passwort-Dialog
 
 [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
 
-| Job | Beschreibung |
+| Job | Description |
 |-----|-------------|
-| **build** | ARM64 Cross-Compile → kernel8.img als Artifact |
-| **analyze** | `cppcheck --enable=all` statische Code-Analyse |
-| **test** | QEMU Boot-Test + ISO Build + FAT32-Verify |
+| **build** | ARM64 cross-compile → kernel8.img as artifact |
+| **security** | fanalyzer + cppcheck + flawfinder summary |
+| **test** | QEMU boot test + ISO build + FAT32 verify |
 
-**Workflow**: `.github/workflows/build.yml` — läuft bei jedem Push & Pull Request.
+**Workflow**: `.github/workflows/build.yml` — runs on every push & pull request.
 
 ---
 
-## 📄 Lizenz
+## 📄 License
 
 ### v1.0.0 — "Photon" (2026-06-15)
 
-- **Core**: Bare-Metal ARM64 Kernel, 62 KB
-- **Graphics**: GPU-allocierter Framebuffer (1024×768×32), 128-bit STP, Double-Buffering
-- **GUI**: Desktop-Umgebung mit Taskbar, Fenster, Icons, Clock
-- **Screens**: Grafischer Welcome-Screen + Recovery-Screen (WFI-Polling)
-- **Animation**: 20-Frame Boot-Animation mit Gradient-Progressbar
-- **Scheduler**: BORE-inspired, 32 Tasks, 1 kHz Tick
-- **Recovery**: 8 Subsysteme (Journal, Trash, Versions, CRC32, Boot-Recovery, Protection, Snapshots, Auto-Recovery)
-- **Logging**: klog Ringpuffer (5 Level), Crash-Log (BSS-Buffer)
-- **Shell**: 17+ Kommandos, interaktiv, UART-basiert
-- **Build**: Parallel (`make -j$(nproc)`), ISO-System, MBR-Boot-Code
-- **Auth**: Desktop-GUI-Only Popup, 5-Minuten-Cache
-- **Security**: Stack-Protector, NULL-Checks, CRC32-Verify, Journal-Atomicity
-- **QEMU**: Direkter Kernel-Boot, ISO-Test, GDB-Debug
+- **Core**: Bare-metal ARM64 kernel, 62 KB
+- **Graphics**: GPU-allocated framebuffer (1024×768×32), 128-bit STP, double buffering
+- **GUI**: Desktop environment with taskbar, windows, icons, clock
+- **Screens**: Graphical welcome screen + recovery screen (WFI polling)
+- **Animation**: 20-frame boot animation with gradient progress bar
+- **Scheduler**: BORE-inspired, 32 tasks, 1 kHz tick
+- **Recovery**: 8 subsystems (journal, trash, versions, CRC32, boot recovery, protection, snapshots, auto-recovery)
+- **Logging**: klog ring buffer (5 levels), crash log (BSS buffer)
+- **Shell**: 17+ commands, interactive, UART-based
+- **Build**: Parallel (`make -j$(nproc)`), ISO system, MBR boot code
+- **Auth**: Desktop GUI-only popup, 5-minute cache
+- **Security**: Stack protector, NULL checks, CRC32 verify, journal atomicity, stack clash protection
+- **Analysis**: cppcheck, flawfinder, GCC fanalyzer, full audit
+- **QEMU**: Direct kernel boot, ISO test, GDB debug
 
 ---
 
-## 📄 Lizenz
+## 📄 License
 
-Proprietär — VibeCore Labs.
+Proprietary — VibeCore Labs.
