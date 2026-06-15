@@ -7,7 +7,7 @@
 ### Quick Facts
 - **Target**: Raspberry Pi 3B / QEMU `raspi3b`
 - **Architecture**: aarch64 (ARMv8-A)
-- **Kernel Size**: ~60 KB
+- **Kernel Size**: ~62 KB
 - **Memory Budget**: 1 MB heap + 64 KB emergency reserve + 128 KB stack
 - **Toolchain**: `aarch64-linux-gnu-gcc`, `as`, `ld`
 - **Licence**: Proprietary (VibeCore Labs)
@@ -235,7 +235,7 @@ make              → Build kernel8.img + kernel.dump (60KB)
 make run          → QEMU raspi3b (serial only)
 make run-gui      → QEMU raspi3b (GTK display)
 make debug        → QEMU with GDB server (:1234)
-make iso          → Bootable FAT32 disk image (vibecore.img, 128 MB)
+make iso          → Bootable FAT32 disk image (vibecore.iso, 128 MB)
 make install      → Flash to SD card (UAC-style auth via auth-helper.sh)
 make clean        → Remove build artifacts
 make cppcheck     → Static analysis
@@ -283,12 +283,17 @@ make iso                      # Falls back to auth-helper for mkfs.fat
 ```
 Vibe_Core_Labor/
 ├── README.md               ← Project overview & quick start
+├── RULES.md                ← Rules for Codebuff/Buffy AI agent
+├── Jules.md                ← Rules for Google Jules AI agent
 ├── ARCHITECTURE.md         ← This file — architecture docs
 ├── TESTING.md              ← Testing guide & CI pipeline
-├── Makefile                ← Build system (parallel, auth)
+├── Makefile                ← Build system (parallel, auth, ISO)
 ├── linker.ld               ← Linker script (memory map)
+├── .github/workflows/      ← GitHub Actions CI/CD
+│   └── build.yml           ← Build, Analyze, QEMU Test, ISO
 ├── scripts/
-│   └── auth-helper.sh      ← UAC-style GUI password popup
+│   ├── auth-helper.sh      ← UAC-style GUI password popup
+│   └── mk-bootmbr.py       ← MBR boot code generator
 ├── src/                    ← 22 kernel source files (21 .c + 1 .S)
 │   ├── boot.S              ← Assembly entry + exception vectors
 │   ├── kernel.c            ← Main initialization sequence
@@ -320,9 +325,13 @@ Vibe_Core_Labor/
 │   ├── allocator.h, fs.h, crc32.h
 │   ├── recovery.h, crashlog.h, klog.h
 │   ├── setup.h, shell.h
-├── doc/
-│   └── ARCHITECTURE.md     ← German-to-English architecture doc
-└── vibecore.img            ← (generated) Bootable disk image
+├── build/                   ← ISO output + firmware (gitignored)
+│   ├── vibecore.iso         ← Bootable disk image (128 MB)
+│   ├── bootcode.bin         ← RPi GPU bootloader
+│   ├── start.elf            ← RPi GPU firmware
+│   └── fixup.dat            ← GPU memory config
+└── doc/
+    └── ARCHITECTURE.md     ← German-to-English architecture doc
 ```
 
 ---
@@ -335,8 +344,21 @@ Vibe_Core_Labor/
 
 ---
 
+## CI/CD
+
+GitHub Actions workflow at `.github/workflows/build.yml`:
+- **build**: ARM64 cross-compile (aarch64-linux-gnu-gcc) → kernel8.img artifact
+- **analyze**: cppcheck static analysis
+- **test**: QEMU smoke test (raspi3b boot) + ISO build + FAT32 verification
+
+Status: [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
+
+---
+
 ## See Also
 
 - [README.md](README.md) — Quick start, features, build commands
 - [TESTING.md](TESTING.md) — Test pyramid, CI pipeline, known limitations
+- [RULES.md](RULES.md) — Rules for Codebuff/Buffy AI agent
+- [Jules.md](Jules.md) — Rules for Google Jules AI agent
 - [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) — Detailed German-to-English architecture reference

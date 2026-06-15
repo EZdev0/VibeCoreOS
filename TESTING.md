@@ -185,13 +185,13 @@ grep -q "OK" qemu_output.log && echo "[PASS] Memory" || echo "[FAIL] Memory"
 
 ```bash
 # 1. Create bootable disk image (128MB FAT32)
-make iso       # Uses auth-helper.sh for mkfs.fat if needed
+make iso       # Auto: GUI→iso-full, headless→iso-noroot
 
-# 2. Flash to SD card (triggers UAC-style password popup)
-make install SDCARD=/dev/mmcblk0
+# 2. Flash to SD card (triggers Desktop-GUI password popup)
+make iso-flash SDCARD=/dev/mmcblk0
 
 # 3. Or flash manually
-scripts/auth-helper.sh dd if=vibecore.img of=/dev/mmcblk0 bs=4M status=progress
+dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
 
 # 4. Insert SD card into Raspberry Pi 3B and power on
 ```
@@ -230,31 +230,28 @@ make install    # First time: GUI password popup via zenity/pkexec
 ## Auth Helper Testing
 
 The `scripts/auth-helper.sh` script:
-- Detects available GUI auth tool: zenity → pkexec → SSH_ASKPASS → terminal
+- **NUR Desktop-GUI**: zenity → pkexec (KEIN Terminal-Fallback!)
 - Shows UAC-style password dialog
-- Caches auth for 5 minutes
-- Falls back gracefully if no GUI is available
+- Caches auth for 5 minutes (AUTH_VALID_SECONDS=300)
+- Fails gracefully if no GUI available
 
 Test manually:
 ```bash
 # Test zenity GUI popup (requires desktop session)
 ./scripts/auth-helper.sh echo "Auth works!"
-
-# Test terminal fallback (no DISPLAY)
-DISPLAY="" ./scripts/auth-helper.sh echo "Terminal fallback!"
 ```
 
-## CI/CD Pipeline (Recommended)
+## CI/CD Pipeline (GitHub Actions)
 
-```
-GitHub Actions / GitLab CI:
-1. Checkout
-2. Install: aarch64-linux-gnu-gcc, cppcheck, flawfinder
-3. make analyze        (cppcheck + flawfinder)
-4. make clean && make  (compile with -Wall -Werror)
-5. make run (smoke)    (QEMU automated test)
-6. Archive kernel8.img (artifact)
-```
+**Implemented** at `.github/workflows/build.yml` — runs on every push & PR:
+
+| Job | Steps |
+|-----|-------|
+| **build** | `apt install gcc-aarch64-linux-gnu` → `make -j$(nproc)` → upload `kernel8.img` |
+| **analyze** | `apt install cppcheck` → `cppcheck --enable=all src/` |
+| **test** | Download artifact → QEMU smoke test → ISO build → FAT32 verify |
+
+Status: [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
 
 ## Quick Reference
 
@@ -271,5 +268,5 @@ flawfinder --minlevel=1 src/ include/
 clang-tidy src/*.c -- -Iinclude -nostdlib -ffreestanding
 
 # Build ISO for hardware
-make iso                            # vibecore.img (128MB)
+make iso                            # build/vibecore.iso (128 MB)
 ```

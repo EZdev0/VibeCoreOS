@@ -1,5 +1,7 @@
 # VibeCore OS 1.0.0 — "Photon"
 
+[![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
+
 **Bare-Metal ARM64 Betriebssystem für Raspberry Pi 3B/4B** — komplett in C und ARMv8 Assembly von Grund auf gebaut. Kein Linux-Kernel, kein Userspace, keine externen Abhängigkeiten. Nur purer Bare-Metal-Code, direkt auf dem Cortex-A53/A72.
 
 ```
@@ -90,11 +92,16 @@ make iso-verify
 ```
 Vibe_Core_Labor/
 ├── README.md                  ← Diese Datei
-├── ARCHITECTURE.md            ← Detaillierte Architektur-Doku
+├── RULES.md                   ← Projekt-Regeln & KI-Agent-Vorgehen
+├── Jules.md                   ← Google Jules AI Agent Regeln
+├── ARCHITECTURE.md            ← Detaillierte Architektur-Doku (EN)
 ├── TESTING.md                 ← Test-Guide & CI-Setup
 ├── Makefile                   ← Build-System (parallel, auth, ISO)
 ├── linker.ld                  ← Linker-Script (Memory-Map)
 ├── config.txt                 ← RPi Boot-Konfiguration
+├── .github/                   ← GitHub Actions CI/CD
+│   └── workflows/
+│       └── build.yml          ← Build, Analyze, QEMU-Test, ISO
 ├── scripts/
 │   ├── auth-helper.sh         ← Desktop-GUI Passwort-Popup (zenity/pkexec)
 │   └── mk-bootmbr.py          ← MBR-Boot-Code Generator (VM-Kompatibilität)
@@ -362,13 +369,29 @@ zenity                         # GUI-Passwort-Dialog
 | Dokument | Inhalt |
 |----------|--------|
 | [README.md](README.md) | Diese Datei — Übersicht & Schnellstart |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Vollständige Architektur: Boot, Speicher, Subsysteme |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Vollständige Architektur: Boot, Speicher, Subsysteme (EN) |
 | [TESTING.md](TESTING.md) | Test-Pyramide: Kompilierung, Analyse, QEMU, Hardware |
-| [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) | Detaillierte Referenz |
+| [RULES.md](RULES.md) | Projekt-Regeln für Codebuff/Buffy KI-Agent |
+| [Jules.md](Jules.md) | Regeln für Google's Jules AI Agent |
+| [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) | Detaillierte Architektur-Referenz |
 
 ---
 
-## 📝 Changelog
+## 🔄 CI/CD (GitHub Actions)
+
+[![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
+
+| Job | Beschreibung |
+|-----|-------------|
+| **build** | ARM64 Cross-Compile → kernel8.img als Artifact |
+| **analyze** | `cppcheck --enable=all` statische Code-Analyse |
+| **test** | QEMU Boot-Test + ISO Build + FAT32-Verify |
+
+**Workflow**: `.github/workflows/build.yml` — läuft bei jedem Push & Pull Request.
+
+---
+
+## 📄 Lizenz
 
 ### v1.0.0 — "Photon" (2026-06-15)
 
