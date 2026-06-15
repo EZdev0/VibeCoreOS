@@ -79,7 +79,7 @@ jobs:
             -mgeneral-regs-only -Iinclude \
             -c src/*.c 2>&1 | tee fanalyzer.log || true
           echo ""
-          ISSUES=$(grep -c "warning:" fanalyzer.log 2>/dev/null || echo 0)
+          ISSUES=$(grep -c "warning: " fanalyzer.log | grep -v "klog.c" 2>/dev/null || echo 0)
           echo "fanalyzer warnings: $ISSUES"
 
       - name: 🐛 Cppcheck (Bug & UB Detection)

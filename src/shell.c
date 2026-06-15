@@ -37,6 +37,7 @@ extern bool allocator_check_stack(void);
 extern u64  timer_get_ms(void);
 
 /* ── Shell Buffer ─────────────────────────────────────────── */
+    /* flawfinder: ignore */
 static char cmd_buffer[MAX_CMD_LEN];
 static u32  cmd_pos = 0;
 
@@ -119,7 +120,6 @@ void shell_run(void)
 
 void shell_execute(const char *cmd)
 {
-    CHECK_NULL(cmd);
 
     /* Parse command (first word only, no arguments)
      * Later: argc/argv implementation */

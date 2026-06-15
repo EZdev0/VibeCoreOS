@@ -1,6 +1,6 @@
 /*
  * ============================================================
- *  VibeCore OS — String Utilities
+ *  VibeCore OS - String Utilities
  *
  *  Bare-metal implementations of:
  *    strlen, strcmp, strncmp, strcpy, strncpy,
@@ -15,9 +15,8 @@
 #include "types.h"
 #include "string.h"
 
-/* ────────────────────────────────────────────────────────────
- *  strlen — String length (excluding null terminator)
- * ────────────────────────────────────────────────────────── */
+/* -
+ * - */
 
 size_t strlen(const char *str)
 {
@@ -27,9 +26,9 @@ size_t strlen(const char *str)
     return (size_t)(s - str);
 }
 
-/* ────────────────────────────────────────────────────────────
- *  strcmp — String comparison
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  strcmp - String comparison
+ * - */
 
 int strcmp(const char *a, const char *b)
 {
@@ -51,9 +50,8 @@ int strncmp(const char *a, const char *b, size_t n)
     return (n == 0) ? 0 : (unsigned char)*a - (unsigned char)*b;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  strcpy / strncpy — String copy
- * ────────────────────────────────────────────────────────── */
+/* -
+ * - */
 
 char *strcpy(char *dst, const char *src)
 {
@@ -72,9 +70,9 @@ char *strncpy(char *dst, const char *src, size_t n)
     return dst;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  memset — Fill memory with a value
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  memset - Fill memory with a value
+ * - */
 
 void *memset(void *ptr, int val, size_t n)
 {
@@ -84,9 +82,8 @@ void *memset(void *ptr, int val, size_t n)
     return ptr;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  memcpy — Copy memory (no overlap)
- * ────────────────────────────────────────────────────────── */
+/* -
+ * - */
 
 void *memcpy(void *dst, const void *src, size_t n)
 {
@@ -97,9 +94,9 @@ void *memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  memmove — Copy memory (overlap-safe)
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  memmove - Copy memory (overlap-safe)
+ * - */
 
 void *memmove(void *dst, const void *src, size_t n)
 {
@@ -119,9 +116,9 @@ void *memmove(void *dst, const void *src, size_t n)
     return dst;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  memcmp — Memory comparison
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  memcmp - Memory comparison
+ * - */
 
 int memcmp(const void *a, const void *b, size_t n)
 {
@@ -138,9 +135,9 @@ int memcmp(const void *a, const void *b, size_t n)
     return 0;
 }
 
-/* ────────────────────────────────────────────────────────────
- *  uart_putu — Output unsigned decimal
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  uart_putu - Output unsigned decimal
+ * - */
 
 void uart_putu(u64 n)
 {
@@ -163,9 +160,9 @@ void uart_putu(u64 n)
     }
 }
 
-/* ────────────────────────────────────────────────────────────
- *  uart_puthex — Output hexadecimal
- * ────────────────────────────────────────────────────────── */
+/* -
+ *  uart_puthex - Output hexadecimal
+ * - */
 
 void uart_puthex(u64 n, bool upper)
 {

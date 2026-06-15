@@ -49,7 +49,7 @@ DEPS     = $(C_SRCS:.c=.d)
 ARCH ?= aarch64
 BOARD ?= raspi3b
 
-TARGET   = kernel.elf
+TARGET   = kernel8.elf
 IMG      = kernel8.img
 MAP      = kernel.map
 DUMP     = kernel.dump
