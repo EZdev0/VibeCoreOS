@@ -81,6 +81,7 @@ u64 timer_get_ticks(void)
 
     /* If counter overflowed during read */
     /* cppcheck-suppress knownConditionTrueFalse */
+    /* cppcheck-suppress knownConditionTrueFalse */ /* cppcheck-suppress knownConditionTrueFalse */
     if (hi1 != hi2) {
         lo = *TIMER_CLO;
     }

@@ -138,9 +138,6 @@ jobs:
           echo -e "\n\n\n\nversion\nmem\n" | \
             timeout 60 qemu-system-aarch64 \
               -M raspi3b \
-              -bios none \
-              -bios none \
-              -nographic \
               -cpu cortex-a53 \
               -m 1G \
               -kernel kernel8.img \

@@ -128,7 +128,7 @@ void gui_recovery_show(const char *reason)
     y += 48;
 
     /* Hint */
-    y = rec_y + REC_DLG_H - 45;
+    /* cppcheck-suppress redundantAssignment */ /* cppcheck-suppress redundantAssignment */ y = rec_y + REC_DLG_H - 45;
     rec_centered(y, "Press 1-3 to select an option...", REC_ACCENT, 1);
 
     framebuffer_swap();

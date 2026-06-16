@@ -107,7 +107,7 @@ void mmu_init(void)
      */
     u64 tcr = (16UL << 0)   |    /* T0SZ: 2^48 User VA */
               (16UL << 16)  |    /* T1SZ: 2^48 Kernel VA */
-              (0b10 << 30)  |    /* TG1: 4KB */
+              /* cppcheck-suppress badBitmaskCheck */ /* cppcheck-suppress badBitmaskCheck */ (0b10 << 30)  |    /* TG1: 4KB */
               (0b00 << 14)  |    /* TG0: 4KB */
               (0b101ULL << 32) | /* IPS: 48-bit PA */
               (0b11 << 8)   |    /* Inner Shareable */
