@@ -347,7 +347,7 @@ Power-On → GPU loads kernel8.img → boot.S (_start)
 | 128-bit STP clear | ~8× | ARMv8 store-pair, 4× unrolled |
 | 64-bit fillrect | ~2× | 2 pixels per write operation |
 | Gradient row caching | ~w× | Compute color once per row |
-| WFI polling | ~99% CPU | Wait-For-Interrupt instead of spin |
+| WFI polling | ~99% CPU | Wait-For-Interrupt and Scheduler yield instead of spin |
 | Parallel build | ~nproc× | `make -j$(nproc)` |
 
 ---
