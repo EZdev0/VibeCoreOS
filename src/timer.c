@@ -109,7 +109,11 @@ void timer_usleep(u32 us)
 {
     u64 start = timer_get_ticks();
     while ((timer_get_ticks() - start) < us) {
-        asm volatile("nop");
+        if (scheduler_get_current() != NULL) {
+            scheduler_yield();
+        } else {
+            asm volatile("wfe");
+        }
     }
 }
 
