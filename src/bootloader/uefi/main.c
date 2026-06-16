@@ -99,7 +99,7 @@ typedef enum {
 } EFI_MEMORY_TYPE;
 
 typedef struct {
-    uint32_t Type;
+    /* cppcheck-suppress unusedStructMember */ uint32_t Type;
     EFI_PHYSICAL_ADDRESS PhysicalStart;
     EFI_PHYSICAL_ADDRESS VirtualStart;
     uint64_t NumberOfPages;

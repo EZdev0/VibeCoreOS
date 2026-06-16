@@ -154,7 +154,7 @@ void *kmalloc(size_t size)
      */
 
     bool use_emergency = false;
-    u8 *target = heap_current + size;
+    const u8 *target = heap_current + size;
 
     /* Check: does it fit in normal heap? */
     if (target > heap_emergency) {

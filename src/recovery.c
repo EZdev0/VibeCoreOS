@@ -339,6 +339,7 @@ bool recovery_hash_verify(const char *path, const u8 *data, size_t size)
 
     /* Corruption detection (when expected != 0 and != computed) */
     /* cppcheck-suppress knownConditionTrueFalse */
+    /* cppcheck-suppress knownConditionTrueFalse */
     if (expected != 0 && computed != expected) {
         klog_error("*** FILE CORRUPTED: '%s' *** (expected=0x%x, computed=0x%x)",
                    path, expected, computed);
@@ -383,6 +384,7 @@ void recovery_boot_scan(void)
     /* Stub: Simulate journal scan */
     klog_info("Journal scanned: %d incomplete, %d recovered", incomplete, recovered);
 
+    /* cppcheck-suppress knownConditionTrueFalse */
     /* cppcheck-suppress knownConditionTrueFalse */
     if (incomplete > 0) {
         klog_warn("Incomplete transactions found! Affected files have been reset.");
