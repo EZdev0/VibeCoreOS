@@ -64,6 +64,7 @@ static void crc32_init_table(void)
 
 u32 crc32_compute(const u8 *data, size_t size, u32 prev)
 {
+    if (!data) return prev;
     if (size == 0) return prev;
 
     /* Initialize table (once, lazy) */
@@ -90,6 +91,7 @@ u32 crc32_compute(const u8 *data, size_t size, u32 prev)
 
 u32 crc32_fast(const u8 *data, size_t size, u32 prev)
 {
+    if (!data) return prev;
     if (size == 0) return prev;
 
     u32 crc = prev ^ 0xFFFFFFFF;

@@ -154,6 +154,7 @@ void recovery_trash_init(void)
 
 int recovery_trash_delete(const char *path)
 {
+    if (!path) return -1;
     if (!trash_initialized) return -1;
 
     /* SYSTEM FILE PROTECTION: Never delete protected files */
@@ -212,6 +213,7 @@ int recovery_trash_delete(const char *path)
 
 int recovery_trash_restore(const char *trash_filename)
 {
+    if (!trash_filename) return -1;
     if (!trash_initialized) return -1;
 
     /* flawfinder: ignore */
@@ -258,6 +260,7 @@ void recovery_versions_init(void)
 
 int recovery_version_save(const char *path)
 {
+    if (!path) return -1;
     if (!versions_initialized) return -1;
 
     /* Version filename: /.versions/<name>_<timestamp> */
@@ -278,6 +281,7 @@ int recovery_version_save(const char *path)
 
 int recovery_version_restore(const char *version_path, const char *target_path)
 {
+    if (!version_path || !target_path) return -1;
 
     klog_info("Version: Restored %s → %s", version_path, target_path);
     return 0;
@@ -306,6 +310,7 @@ void recovery_hashes_init(void)
 
 void recovery_hash_store(const char *path, u32 crc)
 {
+    if (!path) return;
     if (!hashes_initialized) return;
 
     klog_debug("Hash: '%s' → CRC32=0x%x stored", path, crc);
@@ -314,6 +319,7 @@ void recovery_hash_store(const char *path, u32 crc)
 
 bool recovery_hash_verify(const char *path, const u8 *data, size_t size)
 {
+    if (!path || !data) return false;
     if (!hashes_initialized || size == 0) return true; /* No hash index: no check */
 
     /* Compute CRC32 */

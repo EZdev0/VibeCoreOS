@@ -17,6 +17,10 @@
 
 .globl _start
 _start:
+    /* Save DTB pointer (passed by QEMU in x0/r0) */
+    ldr     x1, =dtb_ptr
+    str     x0, [x1]
+
     /*
      * ── Core-Auswahl: Nur Core 0 soll booten ────────────
      * MPIDR_EL1 enthält die Core-ID in den unteren Bits.
@@ -96,9 +100,6 @@ bss_done:
      */
     ldr     x0, =__stack_top
     mov     sp, x0
-    /* x0 comes from QEMU as the DTB address in r0/x0 */
-    ldr     x1, =dtb_ptr
-    str     x0, [x1]
 
     /*
      * ── Frame-Pointer initialisieren ──────────────────

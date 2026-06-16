@@ -108,6 +108,7 @@ void uart_putc(char c)
 
 void uart_puts(const char *str)
 {
+    if (!str) return;
     while (*str) {
         uart_putc(*str++);
     }
@@ -160,6 +161,7 @@ bool uart_has_char(void)
 
 void uart_printf(const char *fmt, ...)
 {
+    if (!fmt) return;
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
