@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/wait.h>
 
 #define SECTOR_SIZE 512
 #define CLUSTER_SIZE 4096
@@ -32,6 +33,31 @@ const uint8_t fat32_boot_sector[512] = {
 // But the prompt says "Universal Installer Routine". A safe installer
 // takes a target image path and creates an image there.
 
+
+// Safe command execution without shell interpretation
+static bool safe_exec(const char* const argv[]) {
+    pid_t pid = fork();
+    if (pid == -1) {
+        return false;
+    } else if (pid == 0) {
+        // Child
+        // Redirect stdout/stderr to /dev/null for silent operation
+        int fd = open("/dev/null", O_WRONLY);
+        if (fd != -1) {
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
+            close(fd);
+        }
+        execvp(argv[0], (char * const *)argv);
+        exit(127); // Exec failed
+    } else {
+        // Parent
+        int status;
+        waitpid(pid, &status, 0);
+        return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    }
+}
+
 bool create_image(const char* output_image, const char* kernel_path) {
     char cmd[512];
 
@@ -43,20 +69,25 @@ bool create_image(const char* output_image, const char* kernel_path) {
     printf("Generating %d MB raw disk image at %s...\n", IMAGE_SIZE_MB, output_image);
 
     // 1. Create a zeroed image file safely using dd
-    snprintf(cmd, sizeof(cmd), "dd if=/dev/zero of='%s' bs=1M count=%d status=none", output_image, IMAGE_SIZE_MB);
-    if (system(cmd) != 0) {
+    char count_str[16];
+    snprintf(count_str, sizeof(count_str), "count=%d", IMAGE_SIZE_MB);
+    char out_str[512];
+    snprintf(out_str, sizeof(out_str), "of=%s", output_image);
+
+    const char *dd_argv[] = {"dd", "if=/dev/zero", out_str, "bs=1M", count_str, "status=none", NULL};
+    if (!safe_exec(dd_argv)) {
         printf("Error: Failed to create image file.\n");
         return false;
     }
 
     // 2. Format it as FAT32 using mtools (no root required)
     printf("Formatting image as FAT32...\n");
-    snprintf(cmd, sizeof(cmd), "mformat -i '%s' -F -v VIBECORE ::", output_image);
-    int ret = system(cmd);
-    if (ret != 0) {
+
+    const char *mformat_argv[] = {"mformat", "-i", output_image, "-F", "-v", "VIBECORE", "::", NULL};
+    if (!safe_exec(mformat_argv)) {
         printf("Warning: mformat failed (is mtools installed?). Attempting mkfs.fat (may fail without loop)... \n");
-        snprintf(cmd, sizeof(cmd), "mkfs.fat -F 32 -n VIBECORE '%s' > /dev/null 2>&1", output_image);
-        if (system(cmd) != 0) {
+        const char *mkfs_argv[] = {"mkfs.fat", "-F", "32", "-n", "VIBECORE", output_image, NULL};
+        if (!safe_exec(mkfs_argv)) {
             printf("Error: Failed to format image as FAT32.\n");
             return false;
         }
@@ -64,8 +95,8 @@ bool create_image(const char* output_image, const char* kernel_path) {
 
     // 3. Copy kernel into the image using mtools (no mount/sudo required)
     printf("Copying %s into the image...\n", kernel_path);
-    snprintf(cmd, sizeof(cmd), "mcopy -i '%s' '%s' ::/kernel8.img", output_image, kernel_path);
-    if (system(cmd) != 0) {
+    const char *mcopy_argv[] = {"mcopy", "-i", output_image, kernel_path, "::/kernel8.img", NULL};
+    if (!safe_exec(mcopy_argv)) {
         printf("Error: Failed to copy kernel via mcopy (is mtools installed?).\n");
         return false;
     }

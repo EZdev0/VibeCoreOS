@@ -196,6 +196,12 @@ int recovery_trash_delete(const char *path)
     /* Serialize metadata (stack buffer) */
     u8 meta_buf[sizeof(TrashMeta) + MAX_PATH_LEN];
     memset(meta_buf, 0, sizeof(meta_buf));
+
+    if (meta.path_len >= MAX_PATH_LEN) {
+        klog_error("Trash: Path too long to serialize '%s'", path);
+        return -1;
+    }
+
     /* flawfinder: ignore */
     memcpy(meta_buf, &meta, sizeof(TrashMeta));
     /* flawfinder: ignore */

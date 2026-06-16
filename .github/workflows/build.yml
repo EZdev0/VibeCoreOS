@@ -117,10 +117,10 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 📥 Download kernel8.elf
+      - name: 📥 Download kernel8.img
         uses: actions/download-artifact@v4
         with:
-          name: kernel8-elf
+          name: kernel8-img
 
       - name: 🔧 Install QEMU + Cross-Compiler + Tools
         run: |
@@ -140,7 +140,7 @@ jobs:
               -M virt,gic-version=3 \
               -cpu cortex-a53 \
               -m 1G \
-              -kernel kernel8.elf \
+              -kernel kernel8.img \
               -serial stdio \
               -nographic \
               -monitor none \

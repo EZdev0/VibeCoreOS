@@ -66,6 +66,11 @@ void klog_init(void)
  *    KLOG_FATAL → ring buffer + UART
  * ────────────────────────────────────────────────────────── */
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-va-list-exhausted"
+#endif
 void klog(KLogLevel level, const char *fmt, ...)
 {
     if (!klog_ready || fmt == NULL) return;
@@ -98,7 +103,7 @@ void klog(KLogLevel level, const char *fmt, ...)
                 break;
             }
             case 'd': {
-                i64 n = (i64)__builtin_va_arg(args, long long int);
+                i64 n = (i64)__builtin_va_arg(args, int);
                 if (n < 0) { buf[pos++] = '-'; n = -n; }
                 if (n == 0) { buf[pos++] = '0'; break; }
     /* flawfinder: ignore */
@@ -108,7 +113,7 @@ void klog(KLogLevel level, const char *fmt, ...)
                 break;
             }
             case 'u': {
-                u64 n = (u64)__builtin_va_arg(args, long long unsigned int);
+                u64 n = (u64)__builtin_va_arg(args, unsigned int);
                 if (n == 0) { buf[pos++] = '0'; break; }
     /* flawfinder: ignore */
                 char tmp[21]; int ti = 20; tmp[ti] = '\0';
@@ -117,7 +122,7 @@ void klog(KLogLevel level, const char *fmt, ...)
                 break;
             }
             case 'x': {
-                u64 n = (u64)__builtin_va_arg(args, long long unsigned int);
+                u64 n = (u64)__builtin_va_arg(args, unsigned int);
                 if (n == 0) { buf[pos++] = '0'; break; }
     /* flawfinder: ignore */
                 char tmp[17]; int ti = 16; tmp[ti] = '\0';
@@ -152,6 +157,11 @@ void klog(KLogLevel level, const char *fmt, ...)
         uart_puts(buf);
     }
 }
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 
 /* ────────────────────────────────────────────────────────────
  *  klog_dump
