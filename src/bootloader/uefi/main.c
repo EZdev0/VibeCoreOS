@@ -233,14 +233,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
         return Status;
     }
 
-    // 4. Open kernel file
-    Status = Root->Open(Root, &KernelFile, u"kernel8.elf", EFI_FILE_MODE_READ, 0);
+    // 4. Open kernel file (flat binary only, no ELF headers)
+    Status = Root->Open(Root, &KernelFile, u"kernel8.img", EFI_FILE_MODE_READ, 0);
     if (Status != EFI_SUCCESS) {
-        Status = Root->Open(Root, &KernelFile, u"kernel8.img", EFI_FILE_MODE_READ, 0);
-        if (Status != EFI_SUCCESS) {
-            print(SystemTable, u"Error: Kernel not found (kernel8.elf / kernel8.img)\r\n");
-            return Status;
-        }
+        print(SystemTable, u"Error: Kernel not found (kernel8.img)\r\n");
+        return Status;
     }
 
     print(SystemTable, u"Kernel file opened. Reading...\r\n");
@@ -289,12 +286,15 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     SystemTable->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, (MemoryMapSize / 4096) + 1, (EFI_PHYSICAL_ADDRESS *)&MemoryMap);
 
     Status = SystemTable->BootServices->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
-    if (Status == EFI_SUCCESS) {
-        Status = SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
-        if (Status != EFI_SUCCESS) {
-            print(SystemTable, u"Error: ExitBootServices failed\r\n");
-            return Status;
-        }
+    if (Status != EFI_SUCCESS) {
+        print(SystemTable, u"Error: GetMemoryMap failed\r\n");
+        return Status;
+    }
+
+    Status = SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
+    if (Status != EFI_SUCCESS) {
+        print(SystemTable, u"Error: ExitBootServices failed\r\n");
+        return Status;
     }
 
     // 7. Jump to kernel

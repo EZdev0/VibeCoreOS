@@ -90,30 +90,30 @@ void crash_log_write(const char *title, const char *desc,
     int pos = 0;
 
     /* Header */
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "═══════════════════════════════════════\n"
         "  VibeCore OS — Crash Report #%d\n"
         "═══════════════════════════════════════\n\n", crash_count);
 
     /* System info */
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Version:    %s\n", VIBECORE_VERSION_STRING);
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Timestamp:  %d ms since boot\n", (int)timer_get_ms());
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Uptime:     %d seconds\n", (int)(timer_get_ms() / 1000));
 
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Error info */
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Exception:  %s\n", title ? title : "Unknown");
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "Details:    %s\n", desc ? desc : "No details");
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Register dump */
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "-- Register Dump --\n");
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "ESR:        0x%x\n", (u32)esr);
@@ -121,11 +121,11 @@ void crash_log_write(const char *title, const char *desc,
         "ELR:        0x%x\n", (u32)elr);
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "FAR:        0x%x\n", (u32)far);
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* ESR decoding */
     u32 ec = (u32)((esr >> 26) & 0x3F);
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "-- ESR Analysis --\n");
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "EC (Class):  0x%x", ec);
@@ -140,14 +140,14 @@ void crash_log_write(const char *title, const char *desc,
         case 0x2F: ec_desc = "SError interrupt"; break;
         default:   ec_desc = "See ARMv8 Reference Manual"; break;
     }
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         " → %s\n", ec_desc);
     snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "ISS:         0x%x\n", (u32)(esr & 0x1FFFFFF));
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos, "\n");
 
     /* Footer */
-    snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
+    pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,
         "═══════════════════════════════════════\n"
         "  Report saved to: %scrash_%d%s\n"
         "  Please reboot the system.\n"

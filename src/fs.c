@@ -174,6 +174,7 @@ bool fs_mount(u8 *boot_sector)
 
 int fs_list_dir(const char *path)
 {
+    if (!path) return -1;
     if (!fat_fs.mounted) {
         klog_error("fs_list_dir: No filesystem mounted!");
         return -1;
@@ -198,6 +199,7 @@ int fs_list_dir(const char *path)
 
 int fs_create_file(const char *name)
 {
+    if (!name) return -1;
     if (!fat_fs.mounted) {
         klog_error("fs_create_file: No filesystem mounted!");
         return -1;

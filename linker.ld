@@ -18,7 +18,7 @@ ENTRY(_start)
 SECTIONS
 {
     /* Kernel-Startadresse */
-    . = 0x80000;
+    . = DEFINED(__kernel_base) ? __kernel_base : 0x80000;
 
     /* ── Boot-Code (muss zuerst kommen) ──────────────────── */
     .text.boot : {

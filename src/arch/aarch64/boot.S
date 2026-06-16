@@ -17,17 +17,22 @@
 
 .globl _start
 _start:
-    /* Save DTB pointer (passed by QEMU in x0/r0) */
-    ldr     x1, =dtb_ptr
-    str     x0, [x1]
-
     /*
      * ── Core-Auswahl: Nur Core 0 soll booten ────────────
      * MPIDR_EL1 enthält die Core-ID in den unteren Bits.
      */
-    mrs     x0, mpidr_el1
-    and     x0, x0, #0xFF           /* Aff0 = Core-ID */
-    cbz     x0, core0_entry          /* Core 0 → weiter */
+    mrs     x1, mpidr_el1
+    and     x1, x1, #0xFF
+    cbnz    x1, .Lskip_dtb
+
+    /* Save DTB pointer ONLY on Core 0 to prevent race condition */
+    ldr     x1, =dtb_ptr
+    str     x0, [x1]
+    b       core0_entry
+
+.Lskip_dtb:
+    /* Secondary cores go to spin loop */
+    b       secondary_spin
 
     /* Cores 1-3: Warten auf Freigabe (Spinloop) */
 secondary_spin:
