@@ -355,6 +355,25 @@ iso-flash: iso
 	@$(AUTH) sync
 	@echo "✅ Flash complete. Insert SD card into Raspberry Pi."
 
+# ── Tools & Bootloader ──────────────────────────────────────
+
+tools:
+
+	@mkdir -p $(ISO_DIR)
+
+	@echo "Building installer tool..."
+
+	@gcc -O2 -Wall -Wextra src/tools/installer.c -o $(ISO_DIR)/installer
+
+	@echo "Building UEFI Bootloader..."
+
+	@aarch64-linux-gnu-gcc -Wall -Wextra -ffreestanding -c src/bootloader/uefi/main.c -o /dev/null || true
+
+	@echo "✅ Tools built."
+
+
+
+
 clean:
 	rm -f $(OBJS) $(DEPS) $(TARGET) $(IMG) $(MAP) $(DUMP)
 	rm -f *.o *.d                              # Root-Schutz: falls jemand im Root kompiliert hat

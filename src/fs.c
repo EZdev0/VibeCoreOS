@@ -124,6 +124,7 @@ void fs_init(void)
 
 bool fs_mount(u8 *boot_sector)
 {
+    if (!boot_sector) return false;
 
     /* Parse BPB */
     FAT32_BPB *bpb = (FAT32_BPB*)boot_sector;
@@ -219,6 +220,7 @@ int fs_create_file(const char *name)
 
 int fs_read_file(const char *path, u8 *buffer, size_t size)
 {
+    if (!path || !buffer) return -1;
     (void)buffer;
 
     klog_debug("fs_read_file: '%s' (%d bytes) — stub", path, (int)size);
@@ -227,6 +229,7 @@ int fs_read_file(const char *path, u8 *buffer, size_t size)
 
 int fs_write_file(const char *path, const u8 *data, size_t size)
 {
+    if (!path || !data) return -1;
     (void)data;
 
     /* SYSTEM FILE PROTECTION: Protected files cannot be overwritten */

@@ -101,6 +101,7 @@ void scheduler_init(void)
 
 Task *scheduler_create_task(const char *name, void (*entry)(void), TaskPriority prio)
 {
+    if (!name || !entry) return NULL;
 
     /* Allocate task structure (simplified: global pool) */
     static Task task_pool[MAX_TASKS];

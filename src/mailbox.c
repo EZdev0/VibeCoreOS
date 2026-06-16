@@ -93,6 +93,7 @@ static void mailbox_write(u8 channel, u32 data)
 
 bool mailbox_call(u32 *buffer, u8 channel)
 {
+    if (!buffer) return false;
 
     /* Data must be 16-byte-aligned */
     if (!IS_ALIGNED((uintptr_t)buffer, 16)) {

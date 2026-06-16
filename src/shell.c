@@ -120,6 +120,7 @@ void shell_run(void)
 
 void shell_execute(const char *cmd)
 {
+    if (!cmd) return;
 
     /* Parse command (first word only, no arguments)
      * Later: argc/argv implementation */
