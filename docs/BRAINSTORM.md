@@ -98,7 +98,7 @@
 [ ] Unit-Test Framework (minimal, in-kernel)
     → ASSERT Macro
     → Test-Runner in Shell (make test-target)
-[ ] Integration Tests für Recovery-Subsysteme
+[ ] Integration tests for recovery subsystems
     → Journal Write → Read → Verify
     → Trash Move → Restore → Verify Path
     → CRC32 Corruption → Auto-FSCK
@@ -203,7 +203,7 @@
 
 #### Tests for v1.4
 ```
-[ ] CI/CD: Userspace Binary bauen + in QEMU ausführen
+[ ] CI/CD: Build userspace binary + execute in QEMU
 [ ] ELF Loader: 100 Programme laden/entladen ohne Leak
 [ ] SVC: syscall Fuzzing (random args → kein Kernel-Crash)
 ```
@@ -234,9 +234,9 @@
 
 #### Process Isolation (MMU)
 ```
-[ ] MMU Fix (L2 Tables für MMIO)
+[ ] MMU Fix (L2 Tables for MMIO)
     → Identity Map Kernel
-    → 2MB Granules für Device Memory
+    → 2MB granules for device memory
 [ ] Per-Process Page Tables
     → ASID (Address Space ID)
     → TTBR0_EL1 (User) / TTBR1_EL1 (Kernel)
@@ -258,7 +258,7 @@
 
 #### Tests for v2.0
 ```
-[ ] CI/CD: Vollständiger Userspace-Test-Suite
+[ ] CI/CD: Full userspace test suite
 [ ] Lua: Scripting-Tests (math, string, io)
 [ ] GUI: Widget Regression Screenshots (VNC capture)
 ```
@@ -275,8 +275,8 @@
 #### Interpreter
 ```
 [ ] Lua 5.4 Port
-    → ANSI C, kein OS-Abhängig
-    → Nur write/read syscalls nötig
+    → ANSI C, not OS dependent
+    → Only write/read syscalls needed
     → Scripting-Shell!
 [ ] Oder: MicroPython
     → ARM64 Bare-Metal Port existiert
@@ -309,7 +309,7 @@
     → Verhindert Shellcode-Injection
 
 [ ] SMEP/SMAP Emulation
-    → Kernel darf nicht Userspace ausführen
+    → Kernel must not execute userspace
     → PAN (Privileged Access Never) auf ARMv8.1
 
 [ ] Signed Binaries
@@ -318,7 +318,7 @@
 
 [ ] Secure Boot Chain
     → GPU → kernel8.img → Userspace
-    → Jeder Stage verifiziert den nächsten
+    → Each stage verifies the next
 ```
 
 ### Performance
@@ -338,15 +338,15 @@
     → Prefetch Hints (PLD)
     → Cache-Coloring gegen Thrashing
 
-[ ] JIT Compiler (längerfristig)
-    → Tiny JIT für Shell-Scripts
-    → BPF Engine für Network Filter
+[ ] JIT Compiler (long term)
+    → Tiny JIT for shell scripts
+    → BPF engine for network filters
 ```
 
 ### Storage
 ```
 [ ] ext2 Dateisystem
-    → Besser als FAT32 für Recovery
+    → Better than FAT32 for recovery
     → Symlinks, Permissions, Journal
 
 [ ] NVMe Driver (RPi 5)
@@ -381,7 +381,7 @@
     → Kiosk-Mode
 ```
 
-### Konnektivität
+### Connectivity
 ```
 [ ] Bluetooth
     → BCM2837 UART Bluetooth (RPi 3B)
@@ -395,7 +395,7 @@
 [ ] HTTP Server
     → TCP/80
     → Statische Dateien
-    → CGI-ähnliche Endpoints
+    → CGI-like endpoints
 
 [ ] SSH Server
     → dropbear Port
@@ -563,21 +563,21 @@ HARD ─────────────┼───────────
 ## 📝 Notes / Ideas (unfiltered)
 
 ```
-- "VibeScript" — eigene Scripting-Sprache für die Shell?
+- "VibeScript" — custom scripting language for the shell?
   → Syntax: help { cmd } | pipe > file
   → Interpreter: 200 Zeilen C
 
 - Shell-History (Pfeiltasten)
   → UART Escape-Sequenzen parsen (ESC [ A/B/C/D)
-  → Ring-Buffer für letzte 20 Kommandos
+  → Ring buffer for last 20 commands
 
 - Tab-Completion
-  → NUR für Shell-Kommandos (kein FS)
-  → Prefix-Matching, erste Übereinstimmung
+  → ONLY for shell commands (no FS)
+  → Prefix matching, first match
 
 - ANSI-Farben in Shell
   → \033[31m ROT \033[0m
-  → Prompt färben, Errors rot, Info blau
+  → Colorize prompt, errors red, info blue
 
 - Splash-Screen statt Boot-Animation
   → 1024×768 BMP laden (von SD)

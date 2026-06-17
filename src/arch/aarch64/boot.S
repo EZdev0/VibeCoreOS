@@ -6,7 +6,7 @@
  *    1. Alle Cores bis auf Core 0 in WFE-Schleife parken
  *    2. Stack-Pointer initialisieren
  *    3. BSS-Sektion nullen
- *    4. Exception-Level prüfen & ggf. wechseln
+ *    4. Check exception level and switch if needed
  *    5. Zu kernel_main() in C springen
  * ============================================================
  */
@@ -19,7 +19,7 @@
 _start:
     /*
      * ── Core-Auswahl: Nur Core 0 soll booten ────────────
-     * MPIDR_EL1 enthält die Core-ID in den unteren Bits.
+     * MPIDR_EL1 contains the core ID in the lower bits.
      */
     mrs     x1, mpidr_el1
     and     x1, x1, #0xFF
@@ -41,9 +41,9 @@ secondary_spin:
 
 core0_entry:
     /*
-     * ── Exception-Level prüfen ─────────────────────────
-     * Wir brauchen EL1 für die Kernel-Ausführung.
-     * Falls wir in EL2 oder EL3 starten (QEMU), wechseln wir.
+     * ── Check Exception Level ─────────────────────────
+     * We need EL1 for kernel execution.
+     * If we start in EL2 or EL3 (QEMU), we switch.
      */
     mrs     x0, CurrentEL
     lsr     x0, x0, #2
@@ -69,7 +69,7 @@ el3_entry:
     eret
 
 el2_entry:
-    /* HCR_EL2: RW=1 (AArch64 für EL1) */
+    /* HCR_EL2: RW=1 (AArch64 for EL1) */
     mrs     x0, hcr_el2
     orr     x0, x0, #(1 << 31)      /* RW */
     msr     hcr_el2, x0
@@ -84,13 +84,13 @@ el2_entry:
 el1_entry:
     /*
      * ── BSS nullen ────────────────────────────────────
-     * Globale Variablen (nicht initialisiert) werden auf 0
-     * gesetzt, bevor C-Code läuft.
+     * Global variables (uninitialized) are set to 0
+     * before C code runs.
      */
     ldr     x0, =__bss_start
     ldr     x1, =__bss_end
     sub     x2, x1, x0
-    lsr     x2, x2, #3               /* Größe in 8-Byte-Blöcken */
+    lsr     x2, x2, #3               /* Size in 8-byte blocks */
     cbz     x2, bss_done
 
 bss_loop:
@@ -101,7 +101,7 @@ bss_loop:
 bss_done:
     /*
      * ── Stack-Pointer setzen ─────────────────────────
-     * Stack wächst nach UNTEN (Full Descending).
+     * Stack grows DOWNWARDS (Full Descending).
      */
     ldr     x0, =__stack_top
     mov     sp, x0
@@ -113,14 +113,14 @@ bss_done:
     mov     x30, xzr                  /* LR = 0 */
 
     /*
-     * ── Vektortabelle einrichten ──────────────────────
+     * ── Setup Vector Table ──────────────────────
      * VBAR_EL1 zeigt auf unsere Exception-Vektor-Tabelle.
      */
     ldr     x0, =exception_vector_table
     msr     vbar_el1, x0
 
     /*
-     * ── SIMD/FP-Register freigeben ────────────────────
+     * ── Enable SIMD/FP Registers ────────────────────
      * CPACR_EL1: FPEN=3 (EL0+EL1 Zugriff erlaubt)
      */
     mrs     x0, cpacr_el1
@@ -132,29 +132,29 @@ bss_done:
 
     /*
      * ── Zu C-Code springen ───────────────────────────
-     * kernel_main() kehrt NIE zurück.
+     * kernel_main() NEVER returns.
      */
     bl      kernel_main
 
-    /* Falls kernel_main doch zurückkehrt: Panic */
+    /* If kernel_main returns anyway: Panic */
     b       kernel_panic_halt
 
 /*
  * ============================================================
  *  Exception-Vektor-Tabelle (ARMv8-A)
  *
- *  Vier Eintritts-Typen × vier Exception-Levels:
+ *  Four entry types x four Exception Levels:
  *  1. Synchronous  (z.B. Syscall, Page-Fault)
  *  2. IRQ          (Hardware-Interrupt)
  *  3. FIQ          (Fast Interrupt)
  *  4. SError       (System Error)
  *
- *  Jede Tabelle MUSS auf 2KB (2048 Bytes) aligniert sein.
- *  Jeder Eintrag ist 128 Bytes (32 Instruktionen) groß.
+ *  Each table MUST be 2KB (2048 bytes) aligned.
+ *  Each entry is 128 bytes (32 instructions) large.
  * ============================================================
  */
 
-.balign 0x800   /* 2048-Byte-Alignment für VBAR */
+.balign 0x800   /* 2048-byte alignment for VBAR */
 .globl exception_vector_table
 exception_vector_table:
 
@@ -200,12 +200,12 @@ exception_vector_table:
 
 /*
  * ── Exception-Handler ─────────────────────────────────────
- *  Sichern alle Register, rufen C-Handler auf,
- *  stellen Register wieder her und kehren zurück.
+ *  Save all registers, call C handler,
+ *  restore registers and return.
  */
 
 .macro EXCEPTION_SAVE
-    sub     sp, sp, #(32 * 8)        /* 256 Bytes für Register */
+    sub     sp, sp, #(32 * 8)        /* 256 bytes for registers */
     stp     x0, x1, [sp, #16 * 0]
     stp     x2, x3, [sp, #16 * 1]
     stp     x4, x5, [sp, #16 * 2]

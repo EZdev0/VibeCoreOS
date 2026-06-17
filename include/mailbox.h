@@ -15,10 +15,10 @@
  *  ──────────────────────────────────────────────
  *   0       4      Buffer size (Bytes)
  *   4       4      Request/Response-Code (0 = Request)
- *   8       ...    Tags (aufeinanderfolgend)
+ *   8       ...    Tags (sequential)
  *   (Ende)  4      End-Tag (0x00000000)
  *
- *  Jeder Tag:
+ *  Each tag:
  *   0       4      Tag-ID
  *   4       4      Value buffer size (Bytes)
  *   8       4      Request/Response (Bit 31 = Request)
