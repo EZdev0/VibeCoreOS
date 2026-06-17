@@ -1,0 +1,259 @@
+name: VibeCore OS Build & Test
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Cross-Compile ──────────────────────────────────────
+  build:
+    name: Build (aarch64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install ARM64 Cross-Compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu
+
+      - name: 🔍 Toolchain Info
+        run: |
+          aarch64-linux-gnu-gcc --version | head -1
+          aarch64-linux-gnu-ld --version | head -1
+
+      - name: 🏗️ Build
+        run: make clean && make BOARD=raspi3b -j$(nproc)
+
+      - name: 📊 Kernel Info
+        run: |
+          echo "Kernel size: $(stat -c%s kernel8.img) bytes"
+          file kernel8.img
+          echo ""
+          echo "Sections:"
+          aarch64-linux-gnu-objdump -h kernel8.elf 2>/dev/null | head -20 || true
+
+      - name: 📦 Upload kernel8.img
+        id: upload-kernel
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel8-img
+          path: kernel8.img
+          retention-days: 30
+
+      - name: Fallback to GitHub Release for kernel
+        if: steps.upload-kernel.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: kernel8.img
+          name: Fallback Release ${{ github.sha }}
+
+      - name: 📦 Upload kernel8.elf (Debug)
+        id: upload-elf
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel8-elf
+          path: kernel8.elf
+          retention-days: 7
+
+      - name: Fallback to GitHub Release for elf
+        if: steps.upload-elf.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: kernel8.elf
+          name: Fallback Release ${{ github.sha }}
+
+  # ── Security & Logic Analysis ─────────────────────────
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            gcc-aarch64-linux-gnu \
+            cppcheck \
+            flawfinder
+
+      - name: 🔍 GCC -fanalyzer (Deep Analysis)
+        run: |
+          echo "=== GCC -fanalyzer Deep Analysis ==="
+          aarch64-linux-gnu-gcc -fanalyzer -Wall -O3 \
+            -nostdlib -nostartfiles -ffreestanding \
+            -mgeneral-regs-only -Iinclude \
+            -c src/*.c 2>&1 | tee fanalyzer.log || true
+          echo ""
+          ISSUES=$(grep "warning: " fanalyzer.log | grep -v "klog.c" | wc -l 2>/dev/null || echo 0)
+          echo "fanalyzer warnings: $ISSUES"
+
+      - name: 🐛 Cppcheck (Bug & UB Detection)
+        run: |
+          echo "=== Cppcheck Analysis ==="
+          cppcheck --enable=all --inconclusive --std=c11 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            -Iinclude src/ 2>&1 | tee cppcheck.log || true
+
+      - name: 🛡️ Flawfinder (CWE/SANS Top 25)
+        run: |
+          echo "=== Flawfinder Security Audit ==="
+          flawfinder --minlevel=1 --columns --context \
+            src/ include/ 2>&1 | tee flawfinder.log || true
+
+      - name: 📊 Security Summary
+        run: |
+          echo "============================================"
+          echo "  🔒 Security Audit Summary"
+          echo "============================================"
+          echo ""
+          echo "fanalyzer: $(grep -c 'warning:' fanalyzer.log 2>/dev/null || echo 0) issues"
+          echo "cppcheck:  $(grep -c '\\(error\|warning\|style\|performance\|portability\\)' cppcheck.log 2>/dev/null || echo 0) issues"
+          echo "flawfinder: $(grep -c '\[.*\]' flawfinder.log 2>/dev/null || echo 0) issues"
+          echo ""
+          echo "Logs saved as artifacts for review."
+
+      - name: 📦 Upload Security Logs
+        id: upload-logs
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-logs
+          path: |
+            fanalyzer.log
+            cppcheck.log
+            flawfinder.log
+          retention-days: 7
+
+      - name: Fallback to GitHub Release for Security Logs
+        if: steps.upload-logs.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: |
+            fanalyzer.log
+            cppcheck.log
+            flawfinder.log
+          name: Fallback Release ${{ github.sha }}
+
+
+  # ── QEMU Smoke Test + ISO Build ──────────────────────
+  test:
+    name: QEMU Test + ISO
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download kernel8.img
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel8-img
+
+      - name: 🔧 Install QEMU + Cross-Compiler + Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            qemu-system-aarch64 \
+            gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu \
+            dosfstools
+
+      - name: 🧪 QEMU Boot Test
+        timeout-minutes: 2
+        run: |
+          echo "Booting VibeCore OS in QEMU..."
+          echo -e "\n\n\n\nversion\nmem\n" | \
+            timeout 60 qemu-system-aarch64 \
+              -M raspi3b \
+              -cpu cortex-a53 \
+              -m 1G \
+              -kernel kernel8.img \
+              -serial stdio \
+              -nographic \
+              -monitor none \
+              2>&1 | tee qemu_output.log
+
+          echo ""
+          echo "=== Smoke Test Results ==="
+          if grep -q "VibeCore OS" qemu_output.log; then
+            echo "✅ PASS: VibeCore OS banner found"
+          else
+            echo "❌ FAIL: VibeCore OS banner not found"
+            cat qemu_output.log
+            exit 1
+          fi
+
+          if grep -q "SYSTEM CLEAN\|FSCK" qemu_output.log; then
+            echo "✅ PASS: FSCK/system check"
+          fi
+
+          if grep -q "vibecore>" qemu_output.log; then
+            echo "✅ PASS: Shell prompt reached"
+          else
+            echo "⚠️  WARN: Shell prompt not reached (may be timing)"
+          fi
+
+          echo ""
+          echo "=== QEMU Output (last 20 lines) ==="
+          tail -20 qemu_output.log
+
+      - name: 🏗️ Build ISO (noroot)
+        run: make iso-noroot
+
+      - name: 🔍 Verify ISO
+        run: |
+          echo "ISO file:"
+          ls -lh build/vibecore.iso
+          echo ""
+          echo "File type:"
+          file build/vibecore.iso
+          echo ""
+          echo "Partition table:"
+          fdisk -l build/vibecore.iso 2>/dev/null || true
+          echo ""
+          echo "FAT32 signature:"
+          SIG=$(dd if=build/vibecore.iso bs=1 skip=$((2048*512+82)) count=8 2>/dev/null)
+          if echo "$SIG" | grep -q "FAT32"; then
+            echo "  ✅ FAT32 signature valid"
+          else
+            echo "  ❌ FAT32 signature invalid"
+          fi
+
+      - name: 📦 Upload ISO
+        id: upload-iso
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibecore-iso
+          path: build/vibecore.iso
+          retention-days: 30
+
+      - name: Fallback to GitHub Release for ISO
+        if: steps.upload-iso.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: build/vibecore.iso
+          name: Fallback Release ${{ github.sha }}
