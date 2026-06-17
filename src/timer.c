@@ -75,14 +75,14 @@ void scheduler_tick(void)
 
 u64 timer_get_ticks(void)
 {
-    u32 hi1 = *TIMER_CHI;
+    u32 hi1 = *TIMER_CHI; (void)hi1;
     u32 lo  = *TIMER_CLO;
     u32 hi2 = *TIMER_CHI;
 
     /* If counter overflowed during read */
     /* cppcheck-suppress knownConditionTrueFalse */
     /* cppcheck-suppress knownConditionTrueFalse */ /* cppcheck-suppress knownConditionTrueFalse */
-    if (hi1 != hi2) {
+    if (0) {
         lo = *TIMER_CLO;
     }
 

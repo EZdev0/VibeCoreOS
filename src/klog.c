@@ -80,7 +80,7 @@ void klog(KLogLevel level, const char *fmt, ...)
     memset(buf, 0, sizeof(buf));
 
     /* Timestamp prefix */
-    int pos = snprintf_local(buf, sizeof(buf), "[%6d] %-5s | ",
+    size_t pos = snprintf_local(buf, sizeof(buf), "[%6d] %-5s | ",
                              (int)timer_get_ms(),
                              level_names[level]);
 

@@ -19,6 +19,7 @@
 #include "framebuffer.h"
 #include "mailbox.h"
 #include "interrupt.h"
+#include "crashlog.h"
 #include "scheduler.h"
 #include "timer.h"
 #include "crashlog.h"

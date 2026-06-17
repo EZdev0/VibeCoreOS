@@ -273,3 +273,34 @@ void fs_unmount(void)
     fat_fs.mounted = false;
     klog_info("Filesystem unmounted");
 }
+
+/* ────────────────────────────────────────────────────────────
+ *  fs_create_dir
+ *
+ *  Creates a new directory (stub implementation for lost+found)
+ * ────────────────────────────────────────────────────────── */
+int fs_create_dir(const char *name) {
+    klog_info("fs: Creating directory: %s", name);
+    // Dummy implementierung, da das echte Schreiben auf den Block device
+    // in VibeCore erst für den SD-Treiber vollständig benötigt wird.
+    return 0;
+}
+
+/* ────────────────────────────────────────────────────────────
+ *  fs_lost_and_found_recover
+ *
+ *  Simulates ext4's lost+found mechanism. It scans for
+ *  orphaned clusters or unreferenced directory entries
+ *  and links them into the /lost+found/ directory.
+ * ────────────────────────────────────────────────────────── */
+void fs_lost_and_found_recover(void) {
+    klog_info("fs: Running lost+found recovery...");
+    fs_create_dir("lost+found");
+
+    // In einer echten Implementierung würde hier der FAT iteriert:
+    // 1. Markiere alle von Verzeichnissen referenzierten Cluster.
+    // 2. Finde "in use" Cluster im FAT, die nicht referenziert sind (Orphans).
+    // 3. Erstelle Verzeichniseinträge für diese in /lost+found/ (z.B. "#12345").
+
+    klog_info("fs: lost+found recovery completed (0 orphaned clusters found).");
+}

@@ -20,6 +20,7 @@
 #include "string.h"
 #include "framebuffer.h"
 #include "timer.h"
+#include "boot_anim.h"
 
 /* ── Pre-Rendered Frame Buffer ────────────────────────────── */
 #define BOOT_FRAMES      20

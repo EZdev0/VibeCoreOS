@@ -19,3 +19,5 @@ u64  fs_get_free_space(void);
 void fs_unmount(void);
 
 #endif /* _FS_H */
+int fs_create_dir(const char *name);
+void fs_lost_and_found_recover(void);
