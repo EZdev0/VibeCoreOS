@@ -2,12 +2,15 @@
 # ARM64 Bare-Metal Cross-Compile + QEMU Smoke Test
 name: VibeCore OS Build & Test
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
-  workflow_dispatch:  # Manuell auslösbar
+  workflow_dispatch:  # Manually triggerable
 
 jobs:
   # ── Cross-Compile ──────────────────────────────────────
@@ -42,18 +45,38 @@ jobs:
           aarch64-linux-gnu-objdump -h kernel8.elf 2>/dev/null | head -20 || true
 
       - name: 📦 Upload kernel8.img
+        id: upload-kernel
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kernel8-img
           path: kernel8.img
           retention-days: 30
 
+      - name: Fallback to GitHub Release for kernel
+        if: steps.upload-kernel.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: kernel8.img
+          name: Fallback Release ${{ github.sha }}
+
       - name: 📦 Upload kernel8.elf (Debug)
+        id: upload-elf
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: kernel8-elf
           path: kernel8.elf
           retention-days: 7
+
+      - name: Fallback to GitHub Release for elf
+        if: steps.upload-elf.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: kernel8.elf
+          name: Fallback Release ${{ github.sha }}
 
   # ── Security & Logic Analysis ─────────────────────────
   security:
@@ -107,6 +130,30 @@ jobs:
           echo "flawfinder: $(grep -c '\[.*\]' flawfinder.log 2>/dev/null || echo 0) issues"
           echo ""
           echo "Logs saved as artifacts for review."
+
+      - name: 📦 Upload Security Logs
+        id: upload-logs
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-logs
+          path: |
+            fanalyzer.log
+            cppcheck.log
+            flawfinder.log
+          retention-days: 7
+
+      - name: Fallback to GitHub Release for Security Logs
+        if: steps.upload-logs.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: |
+            fanalyzer.log
+            cppcheck.log
+            flawfinder.log
+          name: Fallback Release ${{ github.sha }}
+
 
   # ── QEMU Smoke Test + ISO Build ──────────────────────
   test:
@@ -191,3 +238,20 @@ jobs:
           else
             echo "  ❌ FAT32 signature invalid"
           fi
+
+      - name: 📦 Upload ISO
+        id: upload-iso
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibecore-iso
+          path: build/vibecore.iso
+          retention-days: 30
+
+      - name: Fallback to GitHub Release for ISO
+        if: steps.upload-iso.outcome == 'failure'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fallback-release-${{ github.sha }}
+          files: build/vibecore.iso
+          name: Fallback Release ${{ github.sha }}

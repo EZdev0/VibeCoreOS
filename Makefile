@@ -272,7 +272,7 @@ iso-full: all iso-check
 	@ls -lh $(ISO_IMG) | awk '{printf "  │  Size:     %-30s │\n", $$5}'
 	@fdisk -l $(ISO_IMG) 2>/dev/null | grep -E "Disklabel|$(ISO_IMG)|Boot" | awk '{printf "  │  %-42s │\n", substr($$0,1,42)}'
 	@echo "  │  MBR:      Boot-Code aktiv                  │"
-	@echo "  │  ⚠️ VM-Boot: Nicht für VM-Direktboot        │"
+	@echo "  │  ⚠️ VM-Boot: Not for VM direct boot        │"
 	@echo "  │  💻 Verwende: make run (QEMU direkt)        │"
 	@echo "  └─────────────────────────────────────────────┘"
 	@echo ""
@@ -308,9 +308,9 @@ iso-noroot: all iso-check-tools
 	@ls -lh $(ISO_IMG) | awk '{printf "  │  Size:     %-30s │\n", $$5}'
 	@fdisk -l $(ISO_IMG) 2>/dev/null | grep -E "Disklabel|$(ISO_IMG)|Boot" | awk '{printf "  │  %-42s │\n", substr($$0,1,42)}'
 	@echo "  │  MBR:      Boot-Code aktiv                  │"
-	@echo "  │  ⚠️ Keine Dateien (no-root Modus)          │"
+	@echo "  │  ⚠️ No files (no-root mode)          │"
 	@echo "  │  💻 Verwende: make run (QEMU direkt)        │"
-	@echo "  │  💿 Flash, dann manuell Dateien kopieren    │"
+	@echo "  │  💿 Flash, then manually copy files    │"
 	@echo "  └─────────────────────────────────────────────┘"
 	@echo ""
 	@echo "  ✅ Base image created! ($(ISO_SIZE) MB)"

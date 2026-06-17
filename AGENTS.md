@@ -26,6 +26,7 @@ This is the root AGENTS.md for VibeCore OS. It defines the global architecture, 
 - Run `make audit` periodically for deep analysis.
 
 ## Child DOX Index
+- `docs/`: Contains all documentation like ARCHITECTURE, BRAINSTORM, RULES, TESTING.
 - `src/AGENTS.md`: Source code rules, kernel structure, architecture isolation, and subsystems.
 - `include/AGENTS.md`: Header structure, hardware peripheral definitions, and type safety.
 - `scripts/AGENTS.md`: Build scripts, authorization helpers, and boot code generators.
