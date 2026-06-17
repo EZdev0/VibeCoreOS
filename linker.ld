@@ -2,12 +2,12 @@
  * ============================================================
  *  VibeCore OS — Linker-Script (ARM64 / aarch64)
  *  Raspberry Pi 3B (BCM2837) / QEMU raspi3b
- *  Optimiert für 8GB-constrained Systeme.
+ *  Optimized for 8GB-constrained systems.
  *
- *  Kernel wird von der Pi-Firmware nach 0x80000 geladen.
- *  .text.boot MUSS am Anfang der Binary stehen.
+ *  Kernel is loaded to 0x80000 by the Pi firmware.
+ *  .text.boot MUST be at the beginning of the binary.
  *
- *  Stack:   128 KB (spart RAM, reicht für Kernel)
+ *  Stack: 128 KB (saves RAM, sufficient for kernel)
  *  Heap:    1 MB   (spart RAM, mit 64KB Emergency-Reserve)
  *  Guard:   4 KB   (Stack-Schutz via Canary)
  * ============================================================
@@ -56,12 +56,12 @@ SECTIONS
         __bss_end = .;
     }
 
-    /* ── Guard-Page (4KB, nicht gemappt = Crash bei Overflow) ── */
+    /* ── Guard-Page (4KB, unmapped = Crash on overflow) ── */
     . = ALIGN(4096);
     __guard_page = .;
     . += 4096;
 
-    /* ── Stack (wächst nach unten, 128KB) ────────────────── */
+    /* ── Stack (grows downwards, 128KB) ────────────────── */
     . = ALIGN(16);
     __stack_bottom = .;
     . += 0x20000;                /* 128 KB Kernel-Stack */
@@ -77,8 +77,8 @@ SECTIONS
 
     /*
      * WICHTIG:
-     *   /DISCARD/ verhindert, dass Standard-Sektionen
-     *   den Kernel aufblähen.
+     *   /DISCARD/ prevents standard sections
+     *   from bloating the kernel.
      */
     /DISCARD/ : {
         *(.comment)

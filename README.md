@@ -304,10 +304,13 @@ Power-On → GPU loads kernel8.img → boot.S (_start)
 
 ## 🐛 Known Bugs & Status
 
-### Recently Fixed (2026-06-15)
+### Recently Fixed
 
 | Bug | File | Fix |
 |-----|------|-----|
+| Translation to English | Multiple Files | Translated all German comments, prints and variables to English. |
+| GitHub Workflow Artifact limits | `.github/workflows/build.yml` | Implemented fallback to Github Release for artifacts limit overflow. |
+| Directory Cleanup | Multiple | Moved documentation files into a `docs` folder. |
 | `mailbox_call` checked wrong return value | `mailbox.c` | `buffer[1] == MBOX_RESPONSE` instead of `result == 0` |
 | GPU address read from wrong slot | `framebuffer.c` | `buf[23]` (base) + `buf[24]` (size) instead of `buf[22]` |
 | `framebuffer_fillrect` alignment fault (device memory) | `framebuffer.c` | `IS_ALIGNED(buf, 8)` check + 32-bit fallback |
@@ -382,11 +385,11 @@ zenity                         # GUI password dialog
 | Document | Content |
 |----------|--------|
 | [README.md](README.md) | This file — overview & quick start |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Complete architecture: boot, memory, subsystems |
-| [TESTING.md](TESTING.md) | Test pyramid: compilation, analysis, QEMU, hardware |
-| [RULES.md](RULES.md) | Project rules for Codebuff/Buffy AI agent |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Complete architecture: boot, memory, subsystems |
+| [TESTING.md](docs/TESTING.md) | Test pyramid: compilation, analysis, QEMU, hardware |
+| [RULES.md](docs/RULES.md) | Project rules for Codebuff/Buffy AI agent |
 | [Jules.md](Jules.md) | Rules for Google's Jules AI agent |
-| [BRAINSTORM.md](BRAINSTORM.md) | Roadmap, ideas & future vision |
+| [BRAINSTORM.md](docs/BRAINSTORM.md) | Roadmap, ideas & future vision |
 
 ---
 
