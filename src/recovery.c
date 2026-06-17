@@ -329,7 +329,7 @@ bool recovery_hash_verify(const char *path, const u8 *data, size_t size)
     if (!hashes_initialized || size == 0) return true; /* No hash index: no check */
 
     /* Compute CRC32 */
-    u32 computed = crc32_fast(data, size, 0);
+    u32 computed = crc32_compute(data, size);
 
     /* Stub: Read expected CRC from /.hashes */
     u32 expected = 0;  /* fs_read_hash(path); — not yet implemented */

@@ -234,6 +234,8 @@ iso-full: all iso-check
 	@mkdir -p $(ISO_DIR)
 	@echo "  [1/5] Creating blank image..."
 	@dd if=/dev/zero of=$(ISO_IMG) bs=1M count=$(ISO_SIZE) status=none
+	@mkdir -p $(ISO_DIR)/EFI/BOOT
+	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
 	@echo "  [2/5] Writing MBR partition table..."
 	@printf "label: dos\nstart=$(ISO_PART_START), type=0c, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
@@ -280,7 +282,7 @@ iso-full: all iso-check
 	@echo "  Flash: dd if=$(ISO_IMG) of=/dev/sdX bs=4M status=progress"
 
 # ── Base ISO (partitioned + formatted, no files, NO root) ────
-iso-noroot: all iso-check-tools
+iso-noroot: all iso-check-tools efi_stub
 	@echo "============================================"
 	@echo "  VibeCore OS — Base ISO (no root)"
 	@echo "  Partitioned + formatted, no files."
@@ -289,6 +291,8 @@ iso-noroot: all iso-check-tools
 	@mkdir -p $(ISO_DIR)
 	@echo "  [1/3] Creating blank image..."
 	@dd if=/dev/zero of=$(ISO_IMG) bs=1M count=$(ISO_SIZE) status=none
+	@mkdir -p $(ISO_DIR)/EFI/BOOT
+	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
 	@echo "  [2/3] Writing MBR partition table..."
 	@printf "label: dos\nstart=$(ISO_PART_START), type=0c, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
@@ -374,7 +378,7 @@ tools:
 
 
 
-clean:
+clean: clean-efi
 	rm -f $(OBJS) $(DEPS) $(TARGET) $(IMG) $(MAP) $(DUMP)
 	rm -f *.o *.d                              # Root-Schutz: falls jemand im Root kompiliert hat
 	rm -f $(ISO_IMG) $(ISO_DIR)/vibecore.img  # .iso (current) + legacy .img
@@ -525,3 +529,10 @@ help:
 	@echo "  🔧 'make iso' always works (headless or desktop)"
 	@echo ""
 	@echo "  Parallel:    make -j$$(nproc)"
+
+efi_stub:
+	@echo "  BUILD   BOOTAA64.EFI"
+	@$(MAKE) -f Makefile.efi
+
+clean-efi:
+	@rm -f BOOTAA64.EFI main.so src/bootloader/uefi/main.o

@@ -1,0 +1,19 @@
+# UEFI Bootloader Makefile für ARM64
+CC = aarch64-linux-gnu-gcc
+LD = aarch64-linux-gnu-ld
+OBJCOPY = aarch64-linux-gnu-objcopy
+
+CFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mgeneral-regs-only
+LDFLAGS = -nostdlib -znocombreloc -shared -Bsymbolic
+
+all: BOOTAA64.EFI
+
+%.o: %.c
+	$(CC) $(CFLAGS) -DGNU_EFI_USE_MS_ABI -c $< -o $@
+
+main.so: src/bootloader/uefi/main.o
+	$(LD) $(LDFLAGS) $< -o $@
+
+BOOTAA64.EFI: main.so
+	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel \
+	-j .rela -j .rel.* -j .rela.* -j .reloc -O binary $< $@

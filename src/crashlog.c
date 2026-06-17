@@ -27,6 +27,7 @@
 #include "string.h"
 #include "timer.h"
 #include "interrupt.h"
+#include "crashlog.h"
 #include "klog.h"
 
 #define CRASH_LOG_DIR       "/Desktop"
@@ -87,7 +88,7 @@ void crash_log_write(const char *title, const char *desc,
      */
     memset(crash_log_buf, 0, sizeof(crash_log_buf));
 
-    int pos = 0;
+    size_t pos = 0;
 
     /* Header */
     pos += snprintf_local(crash_log_buf + pos, CRASH_LOG_MAX_SIZE - pos,

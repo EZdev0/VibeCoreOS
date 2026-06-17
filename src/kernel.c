@@ -21,6 +21,9 @@
 
 #include "types.h"
 #include "kernel.h"
+#include "boot_anim.h"
+#include "crashlog.h"
+#include "crc32.h"
 #include "peripherals.h"
 #include "string.h"
 #include "framebuffer.h"
@@ -131,6 +134,7 @@ void kernel_main(void)
      */
     klog_info("Initializing filesystem...");
     fs_init();
+    fs_lost_and_found_recover();
     klog_info("Filesystem ready.");
 
     /*
