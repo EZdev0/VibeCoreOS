@@ -91,7 +91,7 @@ void boot_animation_run(void)
         }
 
         /* ── Percentage display ──────────────────────── */
-    /* flawfinder: ignore */
+
         char pct_buf[16];
         int pct = (frame * 100) / BOOT_FRAMES;
         char *p = pct_buf;
@@ -120,7 +120,7 @@ void boot_animation_run(void)
         for (int m = 0; m < visible_msgs && m < msg_count; m++) {
             Color msg_color = (m < visible_msgs - 1) ? RGB(80, 180, 80) : RGB(180, 180, 255);
             char status = (m < visible_msgs - 1) ? '+' : '>';
-    /* flawfinder: ignore */
+
             char line[64];
             char *lp = line;
             *lp++ = ' ';

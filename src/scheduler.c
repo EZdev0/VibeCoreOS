@@ -35,7 +35,7 @@ typedef enum {
 /* ── Task Structure ───────────────────────────────────────── */
 typedef struct task {
     u64         id;               /* Unique task ID */
-    /* flawfinder: ignore */
+
     char        name[32];         /* Task name */
     void        (*entry)(void);   /* Entry point */
     TaskState   state;            /* Current state */
@@ -116,7 +116,7 @@ Task *scheduler_create_task(const char *name, void (*entry)(void), TaskPriority 
     memset(task, 0, sizeof(Task));
 
     task->id = next_task_id++;
-    /* flawfinder: ignore */
+
     strncpy(task->name, name, 31);
     task->name[31] = '\0';
     task->entry = entry;

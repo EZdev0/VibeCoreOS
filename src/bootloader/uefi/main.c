@@ -6,26 +6,26 @@ struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 typedef EFI_STATUS (*EFI_TEXT_STRING)(struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This, CHAR16 *String);
 
 typedef struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
-    void *Reset;
+
     EFI_TEXT_STRING OutputString;
     // We omit the rest for the minimal stub
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 
 typedef struct {
-    char Signature[8];
-    unsigned int Revision;
-    unsigned int HeaderSize;
-    unsigned int CRC32;
-    unsigned int Reserved;
+
+
+
+
+
 } EFI_TABLE_HEADER;
 
 typedef struct {
-    EFI_TABLE_HEADER Hdr;
-    CHAR16 *FirmwareVendor;
-    unsigned int FirmwareRevision;
-    EFI_HANDLE ConsoleInHandle;
-    void *ConIn;
-    EFI_HANDLE ConsoleOutHandle;
+
+
+
+
+
+
     EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *ConOut;
 } EFI_SYSTEM_TABLE;
 

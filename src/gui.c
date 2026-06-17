@@ -155,7 +155,7 @@ void gui_draw_icon(i32 x, i32 y, const char *label, char symbol, Color color, co
     framebuffer_drawrect(x, y, 48, 48, color);
 
     /* Symbol centered */
-    /* flawfinder: ignore */
+
     const char sym_str[2] = {symbol, '\0'};
     framebuffer_drawstring(x + 16, y + 14, sym_str, color, RGB(40, 42, 54), 2);
 
@@ -207,7 +207,7 @@ void gui_update_clock(u32 hours, u32 minutes)
 {
     if (!framebuffer_is_ready()) return;
 
-    /* flawfinder: ignore */
+
     char buf[16];
     char *p = buf;
 

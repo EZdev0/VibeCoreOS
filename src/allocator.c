@@ -22,12 +22,7 @@
 
 /* ── Allocator Metadata ───────────────────────────────────── */
 typedef struct alloc_block {
-    u64     size;
-    bool    free;
-    u32     magic; /* cppcheck-suppress unusedStructMember */
-    struct alloc_block *next; /* cppcheck-suppress unusedStructMember */
-    struct alloc_block *prev; /* cppcheck-suppress unusedStructMember */
-} AllocBlock;
+    } AllocBlock;
 
 #define ALLOC_MAGIC         0xDEADBEEF
 #define ALLOC_ALIGNMENT     16

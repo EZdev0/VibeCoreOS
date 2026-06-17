@@ -18,7 +18,13 @@
 /* -
  * - */
 
-/* flawfinder: ignore */ size_t strlen(const char *str) /* flawfinder: ignore */
+ size_t strnlen(const char *str, size_t maxlen) {
+    size_t len = 0;
+    while (len < maxlen && str[len] != '\0') len++;
+    return len;
+}
+
+size_t strlen(const char *str)
 {
     if (str == NULL) return 0;
     const char *s = str;
@@ -53,7 +59,7 @@ int strncmp(const char *a, const char *b, size_t n)
 /* -
  * - */
 
-/* flawfinder: ignore */ char *strcpy(char *dst, const char *src) /* flawfinder: ignore */
+ char *strcpy(char *dst, const char *src)
 {
     if (dst == NULL || src == NULL) return dst;
     char *d = dst;
@@ -61,7 +67,7 @@ int strncmp(const char *a, const char *b, size_t n)
     return dst;
 }
 
-/* flawfinder: ignore */ char *strncpy(char *dst, const char *src, size_t n) /* flawfinder: ignore */
+ char *strncpy(char *dst, const char *src, size_t n)
 {
     if (dst == NULL || src == NULL) return dst;
     char *d = dst;
@@ -85,7 +91,7 @@ void *memset(void *ptr, int val, size_t n)
 /* -
  * - */
 
-/* flawfinder: ignore */ void *memcpy(void *dst, const void *src, size_t n) /* flawfinder: ignore */
+ void *memcpy(void *dst, const void *src, size_t n)
 {
     if (dst == NULL || src == NULL) return dst;
     u8 *d = (u8*)dst;
@@ -141,7 +147,7 @@ int memcmp(const void *a, const void *b, size_t n)
 
 void uart_putu(u64 n)
 {
-    /* flawfinder: ignore */ /* flawfinder: ignore */ char buf[21];  /* Max 20 digits for u64 + null */
+      char buf[21];  /* Max 20 digits for u64 + null */
     int i = 20;
     buf[i] = '\0';
 
@@ -167,7 +173,7 @@ void uart_putu(u64 n)
 void uart_puthex(u64 n, bool upper)
 {
     const char *hex = upper ? "0123456789ABCDEF" : "0123456789abcdef";
-    /* flawfinder: ignore */ /* flawfinder: ignore */ char buf[17];  /* 16 hex digits + null */
+      char buf[17];  /* 16 hex digits + null */
     int i = 16;
     buf[i] = '\0';
 

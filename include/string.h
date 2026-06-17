@@ -10,18 +10,19 @@
 #include "types.h"
 
 /* ── String-Funktionen ───────────────────────────────────── */
-/* flawfinder: ignore */
+
+size_t strnlen(const char *str, size_t maxlen);
 size_t strlen(const char *str);
 int    strcmp(const char *a, const char *b);
 int    strncmp(const char *a, const char *b, size_t n);
-    /* flawfinder: ignore */
+
 char  *strcpy(char *dst, const char *src);
-/* flawfinder: ignore */
+
 char  *strncpy(char *dst, const char *src, size_t n);
 
 /* ── Speicher-Funktionen ─────────────────────────────────── */
 void  *memset(void *ptr, int val, size_t n);
-/* flawfinder: ignore */
+
 void  *memcpy(void *dst, const void *src, size_t n);
 void  *memmove(void *dst, const void *src, size_t n);
 int    memcmp(const void *a, const void *b, size_t n);
