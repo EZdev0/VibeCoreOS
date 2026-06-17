@@ -2,6 +2,9 @@
 # ARM64 Bare-Metal Cross-Compile + QEMU Smoke Test
 name: VibeCore OS Build & Test
 
+permissions:
+  contents: write
+
 on:
 
 permissions:
