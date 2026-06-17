@@ -1,9 +1,4 @@
-# VibeCore OS — GitHub Actions CI/CD
-# ARM64 Bare-Metal Cross-Compile + QEMU Smoke Test
 name: VibeCore OS Build & Test
-
-permissions:
-  contents: write
 
 on:
 
@@ -18,7 +13,10 @@ permissions:
     branches:
       - master
       - main
-  workflow_dispatch:  # Manually triggerable
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   # ── Cross-Compile ──────────────────────────────────────
