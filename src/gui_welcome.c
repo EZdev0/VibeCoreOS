@@ -91,7 +91,7 @@ void gui_welcome_show(void)
     draw_centered(y, "\"Photon\" -- Lightning Fast", WL_ACCENT, 1);
     y += 30;
 
-    /* flawfinder: ignore */
+
     char buf[64];
     snprintf_local(buf, sizeof(buf), "Version %d.%d.%d  |  aarch64  |  Cortex-A53",
                    VIBECORE_VERSION_MAJOR, VIBECORE_VERSION_MINOR, VIBECORE_VERSION_PATCH);

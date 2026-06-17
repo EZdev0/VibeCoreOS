@@ -302,3 +302,15 @@ make debug            # GDB debug server (:1234)
 ---
 
 _Jules Rules v3.0 — June 15, 2026 — VibeCore Labs_
+
+## 🛡️ Extended AI Directives (Emulation, Fallbacks & Strict Analysis)
+
+### 1. Hardware Fallbacks & Emulation Compatibility
+- **No Hardware Lock-in:** The OS MUST NOT depend on proprietary NVIDIA, AMD, or specific modern hardware accelerations.
+- **Software Rendering:** Ensure graphics and essential subsystems have robust software fallbacks so they can run smoothly in pure emulation modes (like QEMU without KVM, or old hardware emulators).
+- **Userspace Protection:** The boundary between kernel and userspace MUST NOT be violated. Do not delete or compromise any userspace code or structures.
+
+### 2. Zero-Tolerance Analysis (No Muting)
+- **Zero Suppressions:** The use of `// flawfinder: ignore`, `/* flawfinder: ignore */`, and `cppcheck-suppress` is **STRICTLY FORBIDDEN**.
+- **Real Fixes Only:** All static analysis issues found by `make cppcheck`, `make flawfinder`, and `make fanalyzer` must be fundamentally resolved by changing the logic or ensuring safe constraints, rather than silencing the warnings.
+- **CI/CD Integrity:** Do NOT edit the `.github/workflows` YAML files to mute errors or alter the strictness of the tests. The code must pass locally with 0 warnings before pushing.

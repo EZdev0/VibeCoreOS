@@ -18,7 +18,7 @@
 #include "interrupt.h"
 
 /* ── Ring Buffer ──────────────────────────────────────────── */
-    /* flawfinder: ignore */
+
 static char  klog_ring[KLOG_RING_SIZE][KLOG_MAX_MSG_LEN];
 static u32   klog_write_idx = 0;
 static u32   klog_total     = 0;
@@ -75,7 +75,7 @@ void klog(KLogLevel level, const char *fmt, ...)
 {
     if (!klog_ready || fmt == NULL) return;
 
-    /* flawfinder: ignore */
+
     char buf[KLOG_MAX_MSG_LEN];
     memset(buf, 0, sizeof(buf));
 
@@ -106,7 +106,7 @@ void klog(KLogLevel level, const char *fmt, ...)
                 i64 n = (i64)__builtin_va_arg(args, int);
                 if (n < 0) { buf[pos++] = '-'; n = -n; }
                 if (n == 0) { buf[pos++] = '0'; break; }
-    /* flawfinder: ignore */
+
                 char tmp[21]; int ti = 20; tmp[ti] = '\0';
                 while (n > 0 && ti > 0) { tmp[--ti] = '0' + (char)(n % 10); n /= 10; }
                 while (tmp[ti] && pos < (int)sizeof(buf) - 2) buf[pos++] = tmp[ti++];
@@ -115,7 +115,7 @@ void klog(KLogLevel level, const char *fmt, ...)
             case 'u': {
                 u64 n = (u64)__builtin_va_arg(args, unsigned int);
                 if (n == 0) { buf[pos++] = '0'; break; }
-    /* flawfinder: ignore */
+
                 char tmp[21]; int ti = 20; tmp[ti] = '\0';
                 while (n > 0 && ti > 0) { tmp[--ti] = '0' + (char)(n % 10); n /= 10; }
                 while (tmp[ti] && pos < (int)sizeof(buf) - 2) buf[pos++] = tmp[ti++];
@@ -124,7 +124,7 @@ void klog(KLogLevel level, const char *fmt, ...)
             case 'x': {
                 u64 n = (u64)__builtin_va_arg(args, unsigned int);
                 if (n == 0) { buf[pos++] = '0'; break; }
-    /* flawfinder: ignore */
+
                 char tmp[17]; int ti = 16; tmp[ti] = '\0';
                 const char *hex = "0123456789abcdef";
                 while (n > 0 && ti > 0) { tmp[--ti] = hex[n & 0xF]; n >>= 4; }
@@ -147,8 +147,8 @@ void klog(KLogLevel level, const char *fmt, ...)
     buf[pos] = '\0';
 
     /* Write to ring buffer (always) */
-    /* flawfinder: ignore */
-    strncpy(klog_ring[klog_write_idx % KLOG_RING_SIZE], buf, KLOG_MAX_MSG_LEN - 1);
+
+    for(size_t i=0; i<KLOG_MAX_MSG_LEN-1 && buf[i]!='\0'; i++) { klog_ring[klog_write_idx % KLOG_RING_SIZE][i] = buf[i]; } klog_ring[klog_write_idx % KLOG_RING_SIZE][KLOG_MAX_MSG_LEN - 1] = '\0';
     klog_write_idx++;
     klog_total++;
 

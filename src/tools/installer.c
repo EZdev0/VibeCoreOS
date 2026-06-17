@@ -42,13 +42,13 @@ static bool safe_exec(const char* const argv[]) {
     } else if (pid == 0) {
         // Child
         // Redirect stdout/stderr to /dev/null for silent operation
-        /* flawfinder: ignore */ /* flawfinder: ignore */ int fd = open("/dev/null", O_WRONLY);
+          int fd = open("/dev/null", O_WRONLY);
         if (fd != -1) {
             dup2(fd, STDOUT_FILENO);
             dup2(fd, STDERR_FILENO);
             close(fd);
         }
-        /* flawfinder: ignore */ /* flawfinder: ignore */ execvp(argv[0], (char * const *)argv);
+          execvp(argv[0], (char * const *)argv);
         exit(127); // Exec failed
     } else {
         // Parent
@@ -59,9 +59,9 @@ static bool safe_exec(const char* const argv[]) {
 }
 
 bool create_image(const char* output_image, const char* kernel_path) {
-    /* flawfinder: ignore */ /* flawfinder: ignore */ /* flawfinder: ignore */ char cmd[512];
+       /* cmd variable removed */
 
-    /* flawfinder: ignore */ /* flawfinder: ignore */ if (access(kernel_path, F_OK) != 0) {
+      if (access(kernel_path, F_OK) != 0) {
         printf("Error: Kernel file %s not found.\n", kernel_path);
         return false;
     }
@@ -69,9 +69,9 @@ bool create_image(const char* output_image, const char* kernel_path) {
     printf("Generating %d MB raw disk image at %s...\n", IMAGE_SIZE_MB, output_image);
 
     // 1. Create a zeroed image file safely using dd
-    /* flawfinder: ignore */ /* flawfinder: ignore */ char count_str[16];
+      char count_str[16];
     snprintf(count_str, sizeof(count_str), "count=%d", IMAGE_SIZE_MB);
-    /* flawfinder: ignore */ /* flawfinder: ignore */ char out_str[512];
+      char out_str[512];
     snprintf(out_str, sizeof(out_str), "of=%s", output_image);
 
     const char *dd_argv[] = {"dd", "if=/dev/zero", out_str, "bs=1M", count_str, "status=none", NULL};

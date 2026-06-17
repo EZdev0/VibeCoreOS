@@ -194,7 +194,7 @@ void crash_screen_show(const char *title, const char *desc,
         /* Graphical crash screen */
         framebuffer_clear(COLOR_CRASH_BG);
 
-    /* flawfinder: ignore */
+
         char buf[128];
         i32 y = 40;
         const i32 lx = 60;   /* Left text position */
@@ -370,7 +370,7 @@ int snprintf_local(char *buf, size_t max, const char *fmt, ...)
             i64 n = (i64)__builtin_va_arg(args, i64);
             if (n < 0) { append_char(buf, &pos, max, '-'); n = -n; }
             if (n == 0) { append_char(buf, &pos, max, '0'); break; }
-    /* flawfinder: ignore */
+
             char tmp[21]; int ti = 20; tmp[ti] = '\0';
             while (n > 0) { tmp[--ti] = '0' + (char)(n % 10); n /= 10; }
             while (tmp[ti] && pos < max - 1) append_char(buf, &pos, max, tmp[ti++]);
@@ -379,7 +379,7 @@ int snprintf_local(char *buf, size_t max, const char *fmt, ...)
         case 'u': {
             u64 n = (u64)__builtin_va_arg(args, u64);
             if (n == 0) { append_char(buf, &pos, max, '0'); break; }
-    /* flawfinder: ignore */
+
             char tmp[21]; int ti = 20; tmp[ti] = '\0';
             while (n > 0) { tmp[--ti] = '0' + (char)(n % 10); n /= 10; }
             while (tmp[ti] && pos < max - 1) append_char(buf, &pos, max, tmp[ti++]);
@@ -388,7 +388,7 @@ int snprintf_local(char *buf, size_t max, const char *fmt, ...)
         case 'x': {
             u64 n = (u64)__builtin_va_arg(args, u64);
             if (n == 0) { append_char(buf, &pos, max, '0'); break; }
-    /* flawfinder: ignore */
+
             char tmp[17]; int ti = 16; tmp[ti] = '\0';
             const char *hex = "0123456789abcdef";
             while (n > 0) { tmp[--ti] = hex[n & 0xF]; n >>= 4; }
