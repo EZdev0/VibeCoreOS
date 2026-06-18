@@ -13,11 +13,11 @@ import sys
 def assemble_mbr():
     """Assemble a minimal MBR that prints a message and halts."""
     msg = b"VibeCore OS ARM64 - Boot via QEMU: make run\r\nKein BIOS-Boot - Flashe auf SD-Karte\r\n"
-    
+
     # x86 real-mode assembly (hand-encoded):
     # org 0x7C00
     code = bytearray()
-    
+
     # Set up segments (CS=0x0000, DS=0x0000, ES=0x0000)
     # xor ax, ax
     code += b'\x31\xc0'
@@ -29,7 +29,7 @@ def assemble_mbr():
     code += b'\x8e\xd0'
     # mov sp, 0x7C00
     code += b'\xbc\x00\x7c'
-    
+
     # mov si, msg_offset
     # We need to calculate the offset of the message
     # Current position after setup: 11 bytes
@@ -37,7 +37,7 @@ def assemble_mbr():
     # So msg is at offset 16 from start
     msg_offset = 16  # will be calculated after we know exact position
     code += b'\xbe' + struct.pack('<H', msg_offset)
-    
+
     # Print loop:
     # .next_char:
     next_char_offset = len(code)
@@ -49,7 +49,7 @@ def assemble_mbr():
     # (jump offset will be calculated)
     jz_patch_pos = len(code)
     code += b'\x74\x00'  # placeholder
-    
+
     # mov ah, 0x0E  (BIOS teletype output)
     code += b'\xb4\x0e'
     # mov bh, 0x00  (page 0)
@@ -59,32 +59,32 @@ def assemble_mbr():
     # jmp .next_char
     jmp_back = next_char_offset - (len(code) + 2)
     code += b'\xeb' + struct.pack('<b', jmp_back)
-    
+
     # .halt:
     halt_offset = len(code)
     # Fix up the jz .halt jump
     jz_offset = halt_offset - (jz_patch_pos + 2)
     code[jz_patch_pos + 1] = jz_offset & 0xFF
-    
+
     # cli
     code += b'\xfa'
     # hlt
     code += b'\xf4'
     # jmp .halt (infinite loop if NMI)
     code += b'\xeb\xfe'
-    
+
     # Message
     code += msg + b'\x00'
-    
+
     # Pad to exactly 440 bytes with zeros
     if len(code) > 440:
         print(f"ERROR: MBR code too large: {len(code)} bytes (max 440)", file=sys.stderr)
         sys.exit(1)
-    
+
     code += b'\x00' * (440 - len(code))
-    
+
     assert len(code) == 440, f"MBR must be exactly 440 bytes, got {len(code)}"
-    
+
     return bytes(code)
 
 

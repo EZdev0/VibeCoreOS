@@ -237,7 +237,7 @@ iso-full: all iso-check
 	@mkdir -p $(ISO_DIR)/EFI/BOOT
 	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
 	@echo "  [2/5] Writing MBR partition table..."
-	@printf "label: dos\nstart=$(ISO_PART_START), type=0c, bootable\n" | \
+	@printf "label: dos\nstart=$(ISO_PART_START), type=ef, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
 		{ echo "  ❌ ERROR: sfdisk failed"; exit 1; }
 	@echo "  [3/5] Formatting FAT32 partition..."
@@ -245,29 +245,21 @@ iso-full: all iso-check
 	@mkfs.fat -F 32 -n VIBECORE $(ISO_DIR)/_part.fat || \
 		{ echo "  ❌ ERROR: mkfs.fat failed"; rm -f $(ISO_DIR)/_part.fat; exit 1; }
 	@test -s $(ISO_DIR)/_part.fat || { echo "  ❌ ERROR: empty partition"; exit 1; }
-	@dd if=$(ISO_DIR)/_part.fat of=$(ISO_IMG) bs=512 seek=$(ISO_PART_START) conv=notrunc status=none
-	@rm -f $(ISO_DIR)/_part.fat
 	@echo "  [4/6] Injecting MBR boot code (VM compatibility)..."
 	@python3 $(MBR_GEN) | dd of=$(ISO_IMG) bs=1 count=440 conv=notrunc 2>/dev/null
 	@echo "  [5/6] Copying files (GUI auth popup)..."
-	@$(AUTH) bash -c ' \
-		set -e; \
-		LO=$$(losetup -f); \
-		[ -n "$$LO" ] || { echo "ERROR: No loop device"; exit 1; }; \
-		losetup -o $$((2048*512)) $$LO $(ISO_IMG); \
-		MNT=/tmp/vibecore_mnt_$$$$; \
-		mkdir -p $$MNT; \
-		mount $$LO $$MNT; \
-		cp $(IMG) $$MNT/kernel8.img; \
-		cp config.txt $$MNT/config.txt; \
-		cp $(ISO_DIR)/bootcode.bin $$MNT/bootcode.bin; \
-		cp $(ISO_DIR)/start.elf $$MNT/start.elf; \
-		cp $(ISO_DIR)/fixup.dat $$MNT/fixup.dat; \
-		echo "  [6/6] Files on boot partition:"; \
-		ls -lh $$MNT/ | awk "NR>1 {printf \"         %-8s  %s\\n\", \$$5, \$$9}"; \
-		umount $$MNT; \
-		losetup -d $$LO; \
-		rmdir $$MNT'
+	@mmd -i $(ISO_DIR)/_part.fat ::/EFI
+	@mmd -i $(ISO_DIR)/_part.fat ::/EFI/BOOT
+	@mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/EFI/BOOT/BOOTAA64.EFI ::/EFI/BOOT/BOOTAA64.EFI
+	@mcopy -i $(ISO_DIR)/_part.fat $(IMG) ::/kernel8.img
+	@mcopy -i $(ISO_DIR)/_part.fat config.txt ::/config.txt
+	@mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/bootcode.bin ::/bootcode.bin
+	@mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/start.elf ::/start.elf
+	@mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/fixup.dat ::/fixup.dat
+	@echo "  [6/6] Files on boot partition:"
+	@mdir -i $(ISO_DIR)/_part.fat
+	@dd if=$(ISO_DIR)/_part.fat of=$(ISO_IMG) bs=512 seek=$(ISO_PART_START) conv=notrunc status=none
+	@rm -f $(ISO_DIR)/_part.fat
 	@echo ""
 	@echo "  ┌─────────────────────────────────────────────┐"
 	@echo "  │  $(ISO_IMG)  │"
@@ -294,7 +286,7 @@ iso-noroot: all iso-check-tools efi_stub
 	@mkdir -p $(ISO_DIR)/EFI/BOOT
 	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
 	@echo "  [2/3] Writing MBR partition table..."
-	@printf "label: dos\nstart=$(ISO_PART_START), type=0c, bootable\n" | \
+	@printf "label: dos\nstart=$(ISO_PART_START), type=ef, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
 		{ echo "  ❌ ERROR: sfdisk failed"; exit 1; }
 	@echo "  [3/3] Formatting FAT32 partition..."
