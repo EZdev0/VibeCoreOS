@@ -191,7 +191,7 @@ make iso       # Auto: GUI→iso-full, headless→iso-noroot
 make iso-flash SDCARD=/dev/mmcblk0
 
 # 3. Or flash manually
-dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
+dd if=build/vibecore-rpi.img of=/dev/mmcblk0 bs=4M status=progress
 
 # 4. Insert SD card into Raspberry Pi 3B and power on
 ```
@@ -268,5 +268,5 @@ flawfinder --minlevel=1 src/ include/
 clang-tidy src/*.c -- -Iinclude -nostdlib -ffreestanding
 
 # Build ISO for hardware
-make iso                            # build/vibecore.iso (128 MB)
+make iso                            # build/vibecore-rpi.img (128 MB)
 ```

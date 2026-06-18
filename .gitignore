@@ -11,9 +11,13 @@ kernel8.img
 kernel.map
 kernel.dump
 
-# ISO output
-vibecore.iso
+# ISO / SD Image output
 *.iso
+vibecore-rpi.img
+
+# UEFI Stub build artifacts (built on demand via Makefile.efi)
+BOOTAA64.EFI
+main.so
 
 # Legacy
 vibecore.img

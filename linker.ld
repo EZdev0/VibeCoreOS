@@ -15,6 +15,12 @@
 
 ENTRY(_start)
 
+PHDRS
+{
+    text PT_LOAD FLAGS(5); /* R-X */
+    data PT_LOAD FLAGS(6); /* RW- */
+}
+
 SECTIONS
 {
     /* Kernel-Startadresse */
@@ -23,28 +29,30 @@ SECTIONS
     /* ── Boot-Code (muss zuerst kommen) ──────────────────── */
     .text.boot : {
         KEEP(*(.text.boot))
-    }
+    } :text
 
     /* ── Code ────────────────────────────────────────────── */
     .text : {
         *(.text*)
-    }
+    } :text
 
     /* ── Read-Only Data ──────────────────────────────────── */
     .rodata : {
         *(.rodata*)
-    }
+    } :text
+
+    . = ALIGN(4096);
 
     /* ── Initialisierte Daten ────────────────────────────── */
     .data : {
         *(.data*)
-    }
+    } :data
 
     /* ── Stack-Canary (separate Sektion, am BSS-Ende) ────── */
     .stack_canary : {
         . = ALIGN(64);
         KEEP(*(.stack_canary))
-    }
+    } :data
 
     /* ── BSS (Null-initialisiert) ────────────────────────── */
     .bss : {
@@ -54,7 +62,7 @@ SECTIONS
         *(COMMON)
         . = ALIGN(16);
         __bss_end = .;
-    }
+    } :data
 
     /* ── Guard-Page (4KB, unmapped = Crash on overflow) ── */
     . = ALIGN(4096);

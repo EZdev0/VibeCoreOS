@@ -1,19 +1,29 @@
-# UEFI Bootloader Makefile für ARM64
+# UEFI diagnostic loader Makefile for ARM64 (AArch64 PE/COFF)
 CC = aarch64-linux-gnu-gcc
 LD = aarch64-linux-gnu-ld
 OBJCOPY = aarch64-linux-gnu-objcopy
 
-CFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mgeneral-regs-only
-LDFLAGS = -nostdlib -znocombreloc -shared -Bsymbolic
+EFI_SRC = src/bootloader/uefi/main.c
+EFI_OBJ = src/bootloader/uefi/main.o
+EFI_SO  = main.so
+EFI_APP = BOOTAA64.EFI
 
-all: BOOTAA64.EFI
+CFLAGS = -Wall -Wextra -Werror -fpic -ffreestanding -fno-stack-protector \
+         -fno-stack-check -fshort-wchar -mgeneral-regs-only -mstrict-align
+LDFLAGS = -nostdlib -znocombreloc -shared -Bsymbolic -e efi_main
 
-%.o: %.c
+all: $(EFI_APP)
+
+$(EFI_OBJ): $(EFI_SRC)
 	$(CC) $(CFLAGS) -DGNU_EFI_USE_MS_ABI -c $< -o $@
 
-main.so: src/bootloader/uefi/main.o
+$(EFI_SO): $(EFI_OBJ)
 	$(LD) $(LDFLAGS) $< -o $@
 
-BOOTAA64.EFI: main.so
-	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel \
-	-j .rela -j .rel.* -j .rela.* -j .reloc -O binary $< $@
+$(EFI_APP): $(EFI_SO)
+	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym \
+		-j .rel -j .rela -j .rel.* -j .rela.* -j .reloc \
+		--target=pei-aarch64-little --subsystem=efi-app $< $@
+
+clean:
+	rm -f $(EFI_APP) $(EFI_SO) $(EFI_OBJ)

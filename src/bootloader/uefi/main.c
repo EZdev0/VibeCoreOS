@@ -39,6 +39,8 @@ typedef struct {
 #define EFI_SUCCESS 0
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
+    (void)ImageHandle;
+
     SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16 *)L"VibeCore OS Booting via Custom UEFI Stub...\r\n");
     // Since direct jump to kernel8.img requires proper memory mapping in the stub,
     // we'll print a message and hang, confirming our stub executed.

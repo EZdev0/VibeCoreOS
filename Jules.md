@@ -184,18 +184,18 @@ make analyze          # cppcheck + flawfinder (~10s)
 
 ---
 
-## 💿 ISO System
+## 💿 SD Image System
 
 ```bash
 make iso              # Auto: GUI=full, headless=noroot
-make iso-noroot       # Base image (MBR+FAT32, NO root)
+make iso-noroot       # Rootless SD image (MBR+FAT32+boot files, NO root)
 make iso-full         # Full image (needs desktop GUI)
 make iso-verify       # Check partition + FAT32
 make iso-test         # Test ISO in QEMU
 make firmware         # Download RPi firmware
 ```
 
-**ISO structure**: `build/vibecore.iso` (128 MB, MBR+FAT32, NOT ISO 9660!)
+**ISO structure**: `build/vibecore-rpi.img` (128 MB, MBR+FAT32, NOT ISO 9660!)
 
 **Critical**: ISO is NOT built automatically! Run `make iso` or `make iso-noroot` explicitly.
 `make iso-noroot` needs NO root, NO password, NO GUI.
@@ -210,7 +210,7 @@ make run-gui          # Graphics mode (GTK display)
 make debug            # GDB debug server (:1234)
 ```
 
-**Never** VM direct boot! No UEFI, no BIOS — only QEMU `-kernel` flag.
+**Never** VM direct boot! UEFI limited to diagnostic stub, no BIOS — only QEMU `-kernel` flag.
 
 ---
 
@@ -245,7 +245,7 @@ make debug            # GDB debug server (:1234)
 | 1 | MMU disabled (MMIO caching) | `mmu.c`, `kernel.c` | HIGH |
 | 2 | No EMMC/SD driver | `fs.c` | HIGH |
 | 3 | No USB driver | — | MEDIUM |
-| 4 | No UEFI boot (VMs) | — | MEDIUM |
+| 4 | UEFI boot limited to diagnostic stub (no kernel loading yet) | `src/bootloader/uefi/` | MEDIUM |
 | 5 | `va_arg` type mismatch (`snprintf_local`) | `interrupt.c` | MEDIUM |
 | 6 | Missing prototypes | `boot_anim.c`, `crashlog.c` | LOW |
 | 7 | Precision loss gradient | `boot_anim.c` | LOW |
@@ -257,7 +257,7 @@ make debug            # GDB debug server (:1234)
 | `mailbox_call` wrong return check | `buffer[1] == MBOX_RESPONSE` |
 | GPU address wrong slot | `buf[23]` (base) + `buf[24]` (size) |
 | `framebuffer_fillrect` alignment fault | `IS_ALIGNED(buf,8)` + 32-bit fallback |
-| ISO extension `.img` instead of `.iso` | Renamed to `build/vibecore.iso` |
+| SD image had misleading `.iso` extension | Renamed to `build/vibecore-rpi.img` (raw SD image, NOT ISO 9660) |
 | MBR without boot code → VM "not bootable" | `scripts/mk-bootmbr.py` (440-byte MBR) |
 | IRQ infinite loop | Write-1-to-clear + dmb |
 | `snprintf_local` buffer overflow | `max==0` guard |

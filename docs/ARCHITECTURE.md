@@ -235,7 +235,7 @@ make              → Build kernel8.img + kernel.dump (60KB)
 make run          → QEMU raspi3b (serial only)
 make run-gui      → QEMU raspi3b (GTK display)
 make debug        → QEMU with GDB server (:1234)
-make iso          → Bootable FAT32 disk image (vibecore.iso, 128 MB)
+make iso          → Bootable FAT32 disk image (vibecore-rpi.img, 128 MB)
 make install      → Flash to SD card (UAC-style auth via auth-helper.sh)
 make clean        → Remove build artifacts
 make cppcheck     → Static analysis
@@ -327,7 +327,7 @@ Vibe_Core_Labor/
 │   ├── recovery.h, crashlog.h, klog.h
 │   ├── setup.h, shell.h
 ├── build/                   ← ISO output + firmware (gitignored)
-│   ├── vibecore.iso         ← Bootable disk image (128 MB)
+│   ├── vibecore-rpi.img         ← Bootable disk image (128 MB)
 │   ├── bootcode.bin         ← RPi GPU bootloader
 │   ├── start.elf            ← RPi GPU firmware
 │   └── fixup.dat            ← GPU memory config

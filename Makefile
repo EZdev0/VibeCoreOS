@@ -85,7 +85,7 @@ src/%.o: src/%.S
 # ── QEMU ────────────────────────────────────────────────────
 #   NOTE: QEMU's raspi3b machine does NOT emulate the RPi
 #   firmware boot chain (bootcode.bin → start.elf → kernel8.img).
-#   Use -kernel for direct boot. The ISO image is for REAL hardware.
+#   Use -kernel for direct boot. The raw SD image is for REAL hardware.
 run: all
 	@echo "=== VibeCore OS — QEMU (raspi3b, direct kernel boot) ==="
 	qemu-system-aarch64 \
@@ -94,6 +94,7 @@ run: all
 		-m 1G \
 		-kernel $(IMG) \
 		-serial stdio \
+		-monitor none \
 		-nographic
 
 #   QEMU with graphics window (GTK)
@@ -104,6 +105,7 @@ run-gui: all
 		-m 1G \
 		-kernel $(IMG) \
 		-serial stdio \
+		-monitor none \
 		-display gtk
 
 #   QEMU with GDB debug server
@@ -114,23 +116,24 @@ debug: all
 		-m 1G \
 		-kernel $(IMG) \
 		-serial stdio \
+		-monitor none \
 		-nographic \
 		-S -s
 
-#   QEMU: Test ISO image (boots kernel directly + attaches ISO as SD)
-#   QEMU cannot boot from the ISO directly (no firmware emulation).
+#   QEMU: Test raw SD image (boots kernel directly + attaches ISO as SD)
+#   QEMU cannot boot from the raw SD image directly (no firmware emulation).
 #   We boot kernel8.img via -kernel AND attach the ISO as a secondary
 #   SD card so the kernel can access the filesystem/partitions.
 iso-test: iso
 	@echo ""
 	@echo "============================================"
-	@echo "  QEMU ISO Test"
-	@echo "  Boot: kernel8.img (direct) + ISO as SD"
+	@echo "  QEMU SD Image Test"
+	@echo "  Boot: kernel8.img (direct) + raw SD image attached"
 	@echo "============================================"
-	@echo "  The kernel8.img in the ISO is the same binary"
+	@echo "  The kernel8.img in the SD image is the same binary"
 	@echo "  as the locally-built kernel8.img."
 	@echo "  QEMU boots the kernel directly (-kernel flag)."
-	@echo "  The ISO is attached as a block device (if=sd)."
+	@echo "  The raw SD image is attached as a block device (if=sd)."
 	@echo "  On real hardware, the GPU firmware loads"
 	@echo "  kernel8.img from the FAT32 partition."
 	@echo ""
@@ -143,12 +146,13 @@ iso-test: iso
 		-kernel $(IMG) \
 		-drive file=$(ISO_IMG),format=raw,if=sd \
 		-serial stdio \
+		-monitor none \
 		-nographic
 
-#   QEMU: Verify ISO partition table and structure
+#   QEMU: Verify SD image partition table and structure
 #   Checks MBR, FAT32 magic bytes, and reports validity.
 iso-verify: iso
-	@echo "=== ISO Verification ==="
+	@echo "=== SD Image Verification ==="
 	@echo ""
 	@echo "Partition table:"
 	@fdisk -l $(ISO_IMG) 2>/dev/null || true
@@ -165,7 +169,7 @@ iso-verify: iso
 		echo "  ❌ FAT32 signature missing or invalid at sector $(ISO_PART_START)"; \
 	fi
 	@echo ""
-	@echo "ISO structure valid for Raspberry Pi 3B hardware."
+	@echo "SD image structure valid (raw MBR + FAT32)."
 	@echo "Flash with: dd if=$(ISO_IMG) of=/dev/sdX bs=4M status=progress"
 
 # ── SD Card Installation ────────────────────────────────────
@@ -187,17 +191,17 @@ install: all
 	@echo "    cp $(IMG) $(BOOT)/kernel8.img"
 	@echo "    umount $(BOOT)"
 
-# ── ISO / Disk-Image (Bootable SD Card) ─────────────────────
+# ── Raw SD Disk-Image (Bootable SD Card) ─────────────────────
 #   Creates a properly partitioned, bootable SD card image.
 #
-#   make iso         → Auto-detect: GUI=files copied, headless=base only
-#   make iso-noroot  → Partitioned + formatted image (no files, no root)
+#   make iso         → Auto-detect: GUI=files copied, headless=rootless image with boot files
+#   make iso-noroot  → Partitioned + formatted image with boot files (no root)
 #   make iso-full    → Full image with files (needs desktop GUI popup)
 #
-#   Output:   build/vibecore.iso
-#   Contains: MBR + FAT32 partition [+ firmware + kernel if GUI]
+#   Output:   build/vibecore-rpi.img
+#   Contains: MBR + FAT32 partition + kernel/config/EFI stub [+ firmware when present]
 ISO_DIR   = build
-ISO_IMG   = $(ISO_DIR)/vibecore.iso
+ISO_IMG   = $(ISO_DIR)/vibecore-rpi.img
 ISO_SIZE  = 128
 ISO_PART_START = 2048   # Sectors (each 512 bytes) = 1 MiB offset
 
@@ -209,7 +213,7 @@ HAS_GUI  = $(shell [ -n "$$DISPLAY" ] || [ -n "$$WAYLAND_DISPLAY" ] && echo 1 ||
 # ── MBR Boot-Code Generator (Python) ───────────────────────
 MBR_GEN  = $(CURDIR)/scripts/mk-bootmbr.py
 
-# ── Smart ISO: auto-detect GUI ──────────────────────────────
+# ── Smart SD image: auto-detect GUI ──────────────────────────────
 iso: all iso-check-tools
 	@if [ "$(HAS_GUI)" = "1" ] && [ -s "$(ISO_DIR)/bootcode.bin" ]; then \
 		$(MAKE) iso-full; \
@@ -218,29 +222,29 @@ iso: all iso-check-tools
 		$(MAKE) firmware; \
 		$(MAKE) iso-full; \
 	else \
-		echo "  ℹ️  No desktop GUI detected — building base ISO (no files)."; \
-		echo "  ℹ️  Use 'make iso-full' in a desktop session for complete image."; \
+		echo "  ℹ️  No desktop GUI detected — building rootless SD image with boot files."; \
+		echo "  ℹ️  Run 'make firmware' first for a Raspberry-Pi-flashable image."; \
 		echo ""; \
 		$(MAKE) iso-noroot; \
 	fi
 
-# ── Full ISO with files (needs desktop GUI for losetup/mount) ─
-iso-full: all iso-check
+# ── Full SD image with files (needs desktop GUI for losetup/mount) ─
+iso-full: all iso-check efi_stub
 	@echo "============================================"
 	@echo "  VibeCore OS — Full Bootable SD Card Image"
 	@echo "  Output: $(ISO_IMG) ($(ISO_SIZE) MB)"
 	@echo "============================================"
 	@echo ""
 	@mkdir -p $(ISO_DIR)
-	@echo "  [1/5] Creating blank image..."
+	@echo "  [1/6] Creating blank image..."
 	@dd if=/dev/zero of=$(ISO_IMG) bs=1M count=$(ISO_SIZE) status=none
 	@mkdir -p $(ISO_DIR)/EFI/BOOT
 	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
-	@echo "  [2/5] Writing MBR partition table..."
+	@echo "  [2/6] Writing MBR partition table..."
 	@printf "label: dos\nstart=$(ISO_PART_START), type=ef, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
 		{ echo "  ❌ ERROR: sfdisk failed"; exit 1; }
-	@echo "  [3/5] Formatting FAT32 partition..."
+	@echo "  [3/6] Formatting FAT32 partition..."
 	@dd if=$(ISO_IMG) of=$(ISO_DIR)/_part.fat bs=512 skip=$(ISO_PART_START) status=none
 	@mkfs.fat -F 32 -n VIBECORE $(ISO_DIR)/_part.fat || \
 		{ echo "  ❌ ERROR: mkfs.fat failed"; rm -f $(ISO_DIR)/_part.fat; exit 1; }
@@ -273,43 +277,56 @@ iso-full: all iso-check
 	@echo "  ✅ Full bootable image created! ($(ISO_SIZE) MB)"
 	@echo "  Flash: dd if=$(ISO_IMG) of=/dev/sdX bs=4M status=progress"
 
-# ── Base ISO (partitioned + formatted, no files, NO root) ────
+# ── Rootless SD image (partitioned + formatted + boot files) ───
 iso-noroot: all iso-check-tools efi_stub
 	@echo "============================================"
-	@echo "  VibeCore OS — Base ISO (no root)"
-	@echo "  Partitioned + formatted, no files."
+	@echo "  VibeCore OS — Rootless SD Image"
+	@echo "  Partitioned + formatted + boot files."
 	@echo "============================================"
 	@echo ""
 	@mkdir -p $(ISO_DIR)
-	@echo "  [1/3] Creating blank image..."
+	@echo "  [1/5] Creating blank image..."
 	@dd if=/dev/zero of=$(ISO_IMG) bs=1M count=$(ISO_SIZE) status=none
 	@mkdir -p $(ISO_DIR)/EFI/BOOT
 	@cp BOOTAA64.EFI $(ISO_DIR)/EFI/BOOT/
-	@echo "  [2/3] Writing MBR partition table..."
+	@echo "  [2/5] Writing MBR partition table..."
 	@printf "label: dos\nstart=$(ISO_PART_START), type=ef, bootable\n" | \
 		sfdisk --no-reread $(ISO_IMG) >/dev/null 2>&1 || \
 		{ echo "  ❌ ERROR: sfdisk failed"; exit 1; }
-	@echo "  [3/3] Formatting FAT32 partition..."
+	@echo "  [3/5] Formatting FAT32 partition..."
 	@dd if=$(ISO_IMG) of=$(ISO_DIR)/_part.fat bs=512 skip=$(ISO_PART_START) status=none
 	@mkfs.fat -F 32 -n VIBECORE $(ISO_DIR)/_part.fat || \
 		{ echo "  ❌ ERROR: mkfs.fat failed"; rm -f $(ISO_DIR)/_part.fat; exit 1; }
 	@test -s $(ISO_DIR)/_part.fat || { echo "  ❌ ERROR: empty partition"; exit 1; }
+	@echo "  [4/5] Copying boot files without root..."
+	@mmd -i $(ISO_DIR)/_part.fat ::/EFI
+	@mmd -i $(ISO_DIR)/_part.fat ::/EFI/BOOT
+	@mcopy -i $(ISO_DIR)/_part.fat BOOTAA64.EFI ::/EFI/BOOT/BOOTAA64.EFI
+	@mcopy -i $(ISO_DIR)/_part.fat $(IMG) ::/kernel8.img
+	@mcopy -i $(ISO_DIR)/_part.fat config.txt ::/config.txt
+	@if [ -s $(ISO_DIR)/bootcode.bin ] && [ -s $(ISO_DIR)/start.elf ] && [ -s $(ISO_DIR)/fixup.dat ]; then \
+		mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/bootcode.bin ::/bootcode.bin; \
+		mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/start.elf ::/start.elf; \
+		mcopy -i $(ISO_DIR)/_part.fat $(ISO_DIR)/fixup.dat ::/fixup.dat; \
+	else \
+		echo "  ⚠️  RPi firmware missing; image contains kernel/config/UEFI diagnostic only."; \
+		echo "  ⚠️  Run 'make firmware' before flashing to real Raspberry Pi hardware."; \
+	fi
+	@echo "  [5/5] Writing FAT partition and MBR diagnostic code..."
 	@dd if=$(ISO_DIR)/_part.fat of=$(ISO_IMG) bs=512 seek=$(ISO_PART_START) conv=notrunc status=none
 	@rm -f $(ISO_DIR)/_part.fat
-	@echo "  [4/4] Injecting MBR boot code (VM compatibility)..."
 	@python3 $(MBR_GEN) | dd of=$(ISO_IMG) bs=1 count=440 conv=notrunc 2>/dev/null
 	@echo ""
 	@echo "  ┌─────────────────────────────────────────────┐"
 	@echo "  │  $(ISO_IMG)  │"
 	@ls -lh $(ISO_IMG) | awk '{printf "  │  Size:     %-30s │\n", $$5}'
 	@fdisk -l $(ISO_IMG) 2>/dev/null | grep -E "Disklabel|$(ISO_IMG)|Boot" | awk '{printf "  │  %-42s │\n", substr($$0,1,42)}'
-	@echo "  │  MBR:      Boot-Code aktiv                  │"
-	@echo "  │  ⚠️ No files (no-root mode)          │"
+	@echo "  │  MBR:      Diagnose-Hinweis, kein BIOS-Boot │"
+	@echo "  │  Files:    kernel8.img + config + EFI stub  │"
 	@echo "  │  💻 Verwende: make run (QEMU direkt)        │"
-	@echo "  │  💿 Flash, then manually copy files    │"
 	@echo "  └─────────────────────────────────────────────┘"
 	@echo ""
-	@echo "  ✅ Base image created! ($(ISO_SIZE) MB)"
+	@echo "  ✅ Rootless SD image created! ($(ISO_SIZE) MB)"
 
 # ── Check required tools ────────────────────────────────────
 #   iso-check-tools: only tools (for iso-noroot, no firmware needed)
@@ -318,6 +335,8 @@ iso-check-tools:
 	@command -v sfdisk >/dev/null 2>&1 || { echo "ERROR: sfdisk required. Install: util-linux"; exit 1; }
 	@command -v mkfs.fat >/dev/null 2>&1 || { echo "ERROR: mkfs.fat required. Install: dosfstools"; exit 1; }
 	@command -v dd >/dev/null 2>&1 || { echo "ERROR: dd required."; exit 1; }
+	@command -v mcopy >/dev/null 2>&1 || { echo "ERROR: mtools required. Install: mtools"; exit 1; }
+	@command -v mmd >/dev/null 2>&1 || { echo "ERROR: mtools required. Install: mtools"; exit 1; }
 	@test -f $(IMG) || { echo "ERROR: Build first: make -j$$(nproc)"; exit 1; }
 
 iso-check: iso-check-tools
@@ -373,7 +392,7 @@ tools:
 clean: clean-efi
 	rm -f $(OBJS) $(DEPS) $(TARGET) $(IMG) $(MAP) $(DUMP)
 	rm -f *.o *.d                              # Root-Schutz: falls jemand im Root kompiliert hat
-	rm -f $(ISO_IMG) $(ISO_DIR)/vibecore.img  # .iso (current) + legacy .img
+	rm -f $(ISO_IMG) $(ISO_DIR)/vibecore.iso  # current .img + legacy misleading .iso
 
 #   Clean everything including build directory
 clean-all: clean
@@ -492,10 +511,10 @@ help:
 	@echo "  make run-gui      Start in QEMU with GTK display"
 	@echo "  make debug        Start in QEMU with GDB server"
 	@echo ""
-	@echo "  💿 ISO:"
-	@echo "  make iso          Create ISO (auto: GUI→full, headless→base)"
-	@echo "  make iso-noroot   Create base ISO — NO root, NO password"
-	@echo "  make iso-full     Full ISO with files (needs desktop GUI)"
+	@echo "  💿 SD Image:"
+	@echo "  make iso          Create SD image (auto: GUI→full, headless→base)"
+	@echo "  make iso-noroot   Create rootless SD image — NO root, NO password"
+	@echo "  make iso-full     Full SD image with files (needs desktop GUI)"
 	@echo "  make iso-verify   Verify ISO + FAT32 header"
 	@echo "  make iso-test     Test ISO in QEMU"
 	@echo "  make firmware     Download RPi firmware (one-time)"

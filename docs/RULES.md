@@ -208,13 +208,13 @@ pip3 install --break-system-packages --user flawfinder
 
 ---
 
-## 💿 ISO/Image System Rules
+## 💿 SD Image System Rules
 
-### ISO Targets (NEVER change without approval!)
+### SD Image Targets (NEVER change without approval!)
 | Target | Description | Root? |
 |--------|-------------|-------|
 | `make iso` | Auto: GUI→full, else→noroot | Auto |
-| `make iso-noroot` | Base image (MBR+FAT32 only) | **NO** |
+| `make iso-noroot` | Rootless SD image (MBR+FAT32+boot files) | **NO** |
 | `make iso-full` | Full image with files | Yes (GUI) |
 | `make iso-verify` | Verify partition + FAT32 | No |
 | `make iso-test` | Test ISO in QEMU | No |
@@ -222,14 +222,14 @@ pip3 install --break-system-packages --user flawfinder
 
 ### Critical: ISO must be EXPLICITLY built!
 - The ISO is **NOT** created automatically by `make` or `make run`
-- You MUST run `make iso` or `make iso-noroot` explicitly to create `build/vibecore.iso`
+- You MUST run `make iso` or `make iso-noroot` explicitly to create `build/vibecore-rpi.img`
 - `make iso-noroot` works WITHOUT root, WITHOUT password, WITHOUT GUI
 - `make iso` auto-detects GUI → runs `iso-full` (needs Desktop GUI) or `iso-noroot` (headless)
 - `make iso-verify` checks partition table + FAT32 + MBR after build
-- `make clean` deletes `build/vibecore.iso` — rebuild after `make clean`!
+- `make clean` deletes `build/vibecore-rpi.img` — rebuild after `make clean`!
 
-### ISO Structure (DO NOT change!)
-- File: `build/vibecore.iso` (128 MB)
+### SD Image Structure (DO NOT change!)
+- File: `build/vibecore-rpi.img` (128 MB)
 - Format: MBR + FAT32 (**NOT** ISO 9660!)
 - MBR: 440 byte boot code + partition table + 0x55AA
 - Partition: FAT32, bootable, starts at sector 2048
@@ -251,7 +251,7 @@ pip3 install --break-system-packages --user flawfinder
 - **NO** `-M virt` — must be `raspi3b`
 - Memory: **1G** minimum
 - Always use `-serial stdio -nographic` for console mode
-- ISO test: `-kernel kernel8.img -drive file=build/vibecore.iso,if=sd`
+- ISO test: `-kernel kernel8.img -drive file=build/vibecore-rpi.img,if=sd`
 
 ---
 
@@ -341,7 +341,7 @@ Vibe_Core_Labor/
 - [ ] `make harden-test` → Hardened kernel boots
 - [ ] No sensitive data in diff
 - [ ] `.gitignore` current
-- [ ] **Root clean**: no `.o`, `.d`, `vibecore.iso` in root
+- [ ] **Root clean**: no `.o`, `.d` in root (`vibecore-rpi.img` is in `build/`, gitignored)
 - [ ] **No duplicates**: EVERY file exists only ONCE
 - [ ] `make cppcheck` → 0 critical issues
 - [ ] `make flawfinder` → 0 high-risk findings

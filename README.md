@@ -29,10 +29,10 @@ make run
 # Run in QEMU with graphics window
 make run-gui
 
-# Create ISO/image (128 MB, bootable)
+# Create SD image (128 MB, bootable)
 make iso
 
-# Verify ISO
+# Verify SD image
 make iso-verify
 ```
 
@@ -47,11 +47,11 @@ make iso-verify
 | `make run-gui` | QEMU with GTK graphics window |
 | `make debug` | QEMU with GDB server on port 1234 |
 | `make firmware` | Download RPi firmware (one-time) |
-| `make iso` | Bootable ISO (128 MB, auto: GUI→full / headless→base) |
-| `make iso-noroot` | Base ISO WITHOUT root privileges, NO password |
-| `make iso-full` | Full ISO with files (needs desktop GUI for auth popup) |
-| `make iso-verify` | Verify ISO: partition table + FAT32 signature |
-| `make iso-test` | Test ISO in QEMU (kernel direct + ISO as SD) |
+| `make iso` | Bootable raw SD image (128 MB, auto: GUI→full / headless→base) |
+| `make iso-noroot` | Rootless SD image WITHOUT root privileges, NO password |
+| `make iso-full` | Full SD image with files (needs desktop GUI for auth popup) |
+| `make iso-verify` | Verify SD image: partition table + FAT32 signature |
+| `make iso-test` | Test SD image in QEMU (kernel direct + SD image as block device) |
 | `make iso-flash` | Flash ISO to SD card (desktop GUI auth) |
 | `make clean` | Remove build artifacts |
 | `make help` | Show all commands |
@@ -145,7 +145,7 @@ Vibe_Core_Labor/
 │   ├── mailbox.h              ← Mailbox tag definitions
 │   └── ...                    ← (17 more headers)
 ├── build/                     ← Build output & firmware
-│   ├── vibecore.iso           ← Bootable image (128 MB, MBR+FAT32)
+│   ├── vibecore-rpi.img           ← Bootable image (128 MB, MBR+FAT32)
 │   ├── bootcode.bin           ← RPi GPU bootloader (52 KB)
 │   ├── start.elf              ← RPi GPU firmware (2.9 MB)
 │   └── fixup.dat              ← GPU memory configuration (7 KB)
@@ -157,16 +157,16 @@ Vibe_Core_Labor/
 
 ### Overview
 
-The build system creates `build/vibecore.iso` — an **MBR+FAT32 disk image**, NOT an ISO 9660.
+The build system creates `build/vibecore-rpi.img` — an **MBR+FAT32 disk image**, NOT an ISO 9660.
 This is the same format as Ubuntu RPi images and Raspberry Pi OS.
 
-### ISO Targets
+### SD Image Targets
 
 | Target | Description | Root? | GUI? |
 |--------|-------------|-------|------|
 | `make iso` | Auto: GUI detected → `iso-full`, else → `iso-noroot` | Auto | Auto |
 | `make iso-full` | Full image with all files (128 MB) | Yes (losetup) | Yes (zenity) |
-| `make iso-noroot` | Base image, partitioned + formatted only | **NO** | No |
+| `make iso-noroot` | Rootless image with kernel8.img, config.txt, EFI diagnostic stub, optional firmware | **NO** | No |
 
 ### Image Contents (iso-full)
 
@@ -179,6 +179,18 @@ MBR (boot code + partition table)
     ├── start.elf         (2.9 MB) — GPU firmware
     └── fixup.dat         (7 KB)   — GPU memory config
 ```
+
+
+### Boot Support Matrix (as of 2026-06-18)
+
+| Platform | Firmware/Boot Path | Artifact/Command | Status | Limitation |
+|---|---|---|---|---|
+| QEMU Raspberry Pi 3B | QEMU `-kernel` Direct Boot | `make run` | Supported | QEMU does not fully emulate the RPi firmware chain; the SD image is not directly booted here. |
+| Raspberry Pi 3B SD | GPU firmware loads `kernel8.img` from FAT | `make firmware && make iso-full` or `make iso-noroot` with firmware in `build/` | Experimental | Requires `bootcode.bin`, `start.elf`, `fixup.dat`, and `config.txt` on the FAT boot partition. |
+| Raspberry Pi 4B SD | Pi 4 firmware/EEPROM + FAT boot partition | No dedicated board target yet | Not verified | BCM2711/Cortex-A72 and Pi-4-specific MMIO/firmware details are not yet cleanly separated. |
+| AArch64 UEFI | `EFI/BOOT/BOOTAA64.EFI` | Diagnostic stub in SD image | Diagnostic only | The stub only prints a message; it does not load `kernel8.img` yet. |
+| x86 BIOS/Legacy VM | MBR Real Mode | MBR diagnostic code | Diagnostic only | The MBR shows a message and halts; it is not an ARM64 or x86 kernel bootloader. |
+| VirtualBox/virt-manager `.iso` boot | ISO 9660/El Torito or UEFI | Not `build/vibecore-rpi.img` | Not supported | The artifact is a raw SD/disk image, not an ISO 9660 CD-ROM image. |
 
 ### MBR Boot Code
 
@@ -199,7 +211,7 @@ Bytes 510-511: Boot signature (0x55 0xAA) ✅
 make iso-flash SDCARD=/dev/mmcblk0
 
 # Manual
-dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
+dd if=build/vibecore-rpi.img of=/dev/mmcblk0 bs=4M status=progress
 ```
 
 ---
@@ -210,7 +222,7 @@ dd if=build/vibecore.iso of=/dev/mmcblk0 bs=4M status=progress
 
 VibeCore OS is a **bare-metal kernel** for Raspberry Pi. It does NOT boot in a VM like VirtualBox or virt-manager because:
 
-1. **UEFI firmware** (virt-manager, GNOME Boxes) looks for `BOOTAA64.EFI` → not present
+1. **UEFI firmware** (virt-manager, GNOME Boxes) can find `BOOTAA64.EFI`, but it is currently a diagnostic stub and does not load the OS kernel
 2. **BIOS** executes MBR code → shows message only, no real boot
 3. Raspberry Pi boots via **GPU firmware** → no BIOS, no UEFI
 
@@ -314,7 +326,7 @@ Power-On → GPU loads kernel8.img → boot.S (_start)
 | `mailbox_call` checked wrong return value | `mailbox.c` | `buffer[1] == MBOX_RESPONSE` instead of `result == 0` |
 | GPU address read from wrong slot | `framebuffer.c` | `buf[23]` (base) + `buf[24]` (size) instead of `buf[22]` |
 | `framebuffer_fillrect` alignment fault (device memory) | `framebuffer.c` | `IS_ALIGNED(buf, 8)` check + 32-bit fallback |
-| ISO extension `.img` instead of `.iso` | `Makefile` | Renamed to `build/vibecore.iso` |
+| ISO extension `.img` instead of `.iso` | `Makefile` | Renamed to `build/vibecore-rpi.img` (raw SD image, NOT ISO 9660) |
 | MBR without boot code → VM "not bootable" | `mk-bootmbr.py` | 440-byte MBR boot code generated |
 | IRQ infinite loop on unknown IRQs | `interrupt.c` | Write-1-to-clear + dmb barrier |
 | `snprintf_local` buffer overflow | `interrupt.c` | `max == 0` guard before write |
@@ -370,7 +382,7 @@ cppcheck                       # Static C analysis (v2.17.1)
 flawfinder                     # Security scan (v2.0.20)
                               # Install: pip3 install --break-system-packages --user flawfinder
 
-# Optional (ISO/image)
+# Optional (SD image)
 dosfstools                     # mkfs.fat
 python3                        # MBR generator
 
