@@ -1,0 +1,21 @@
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+E: Unable to locate package grub-efi-arm64-bin
+xorriso 1.5.6 : RockRidge filesystem manipulator, libburnia project.
+
+Drive current: -outdev 'stdio:build/vibecore_aarch64_rescue.iso'
+Media current: stdio file, overwriteable
+Media status : is blank
+Media summary: 0 sessions, 0 data blocks, 0 data, 91.7g free
+Added to ISO image: directory '/'='/tmp/grub.Z9k2YU'
+xorriso : UPDATE :       3 files added in 1 seconds
+Added to ISO image: directory '/'='/app/build/iso_temp'
+xorriso : UPDATE :      15 files added in 1 seconds
+xorriso : UPDATE :  83.25% done
+ISO image produced: 34073 sectors
+Written to medium : 34073 sectors at LBA 0
+Writing to 'stdio:build/vibecore_aarch64_rescue.iso' completed successfully.
