@@ -367,7 +367,7 @@ int snprintf_local(char *buf, size_t max, const char *fmt, ...)
             break;
         }
         case 'd': {
-            i64 n = (i64)__builtin_va_arg(args, i64);
+            i64 n = __builtin_va_arg(args, int);
             if (n < 0) { append_char(buf, &pos, max, '-'); n = -n; }
             if (n == 0) { append_char(buf, &pos, max, '0'); break; }
 

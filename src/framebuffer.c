@@ -257,7 +257,7 @@ void framebuffer_clear(Color color)
             "stp %[v], %[v], [%[p]], #16\n\t"
             "stp %[v], %[v], [%[p]], #16\n\t"
             "stp %[v], %[v], [%[p]], #16\n\t"
-            : [p] "+r" (ptr)
+            : [p] "+&r" (ptr)
             : [v] "r" (p64)
             : "memory"
         );
@@ -344,8 +344,9 @@ void framebuffer_fillrect(i32 x, i32 y, i32 w, i32 h, Color color)
             for (; col <= w - 2; col += 2) {
                 *line64++ = p64;
             }
-            /* Odd trailing pixel */
+            /* Odd trailing pixel — line64 points right past last full u64 */
             if (col < w) {
+                *(u32 *)line64 = pixel;
             }
         } else {
             /* Safe path: 32-bit writes (always aligned on Device memory) */
@@ -385,7 +386,7 @@ void framebuffer_fillrow(i32 y, u64 p64)
             "stp %[v], %[v], [%[p]], #16\n\t"
             "stp %[v], %[v], [%[p]], #16\n\t"
             "stp %[v], %[v], [%[p]], #16\n\t"
-            : [p] "+r" (ptr)
+            : [p] "+&r" (ptr)
             : [v] "r" (p64)
             : "memory"
         );

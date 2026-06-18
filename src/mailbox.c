@@ -110,6 +110,11 @@ bool mailbox_call(u32 *buffer, u8 channel)
     u32 result = mailbox_read(channel);
     (void)result;  /* Address echo, not the response code */
 
+    /* Memory barrier: ensure GPU writes to buffer[1] are visible
+     * before the CPU reads the response code. Without this,
+     * speculative execution or caching can return stale data. */
+    asm volatile("dmb sy" ::: "memory");
+
     /* Check the property tag response code in the buffer */
     return (buffer[1] == MBOX_RESPONSE);
 }

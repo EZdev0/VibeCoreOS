@@ -94,7 +94,7 @@ void allocator_init(void)
 static void allocator_check_watermark(void)
 {
     u64 used  = (u64)(heap_current - heap_start);
-    u64 total = (u64)(heap_emergency - heap_start);
+    u64 total = emergency_active ? (u64)(heap_limit - heap_start) : (u64)(heap_emergency - heap_start);
     if (total == 0) return;
 
     u32 pct = (u32)((used * 100) / total);
@@ -270,7 +270,7 @@ bool allocator_check_stack(void)
 void allocator_stats(void)
 {
     u64 used  = (u64)(heap_current - heap_start);
-    u64 total = (u64)(heap_emergency - heap_start);
+    u64 total = emergency_active ? (u64)(heap_limit - heap_start) : (u64)(heap_emergency - heap_start);
     u64 free  = total - used;
     u32 pct   = (u32)((used * 100) / total);
     u32 hwm_pct = (u32)((high_water_mark * 100) / total);

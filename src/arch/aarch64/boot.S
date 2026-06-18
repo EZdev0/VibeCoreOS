@@ -89,14 +89,23 @@ el1_entry:
      */
     ldr     x0, =__bss_start
     ldr     x1, =__bss_end
-    sub     x2, x1, x0
-    lsr     x2, x2, #3               /* Size in 8-byte blocks */
-    cbz     x2, bss_done
+    sub     x2, x1, x0              /* Total byte count */
+    mov     x3, x2
+    and     x3, x3, #7              /* Remainder bytes (0-7) */
+    lsr     x2, x2, #3              /* 8-byte blocks */
+    cbz     x2, bss_tail_check
 
 bss_loop:
     str     xzr, [x0], #8
     sub     x2, x2, #1
     cbnz    x2, bss_loop
+
+bss_tail_check:
+    cbz     x3, bss_done
+bss_tail:
+    strb    wzr, [x0], #1
+    sub     x3, x3, #1
+    cbnz    x3, bss_tail
 
 bss_done:
     /*
@@ -205,7 +214,7 @@ exception_vector_table:
  */
 
 .macro EXCEPTION_SAVE
-    sub     sp, sp, #(32 * 8)        /* 256 bytes for registers */
+    sub     sp, sp, #(34 * 8)        /* 272 bytes for registers + ELR/SPSR */
     stp     x0, x1, [sp, #16 * 0]
     stp     x2, x3, [sp, #16 * 1]
     stp     x4, x5, [sp, #16 * 2]
@@ -221,16 +230,18 @@ exception_vector_table:
     stp     x24, x25, [sp, #16 * 12]
     stp     x26, x27, [sp, #16 * 13]
     stp     x28, x29, [sp, #16 * 14]
-    add     x21, sp, #(32 * 8)       /* SP vor Exception */
+    add     x21, sp, #(34 * 8)       /* SP vor Exception */
     mrs     x22, elr_el1
     mrs     x23, spsr_el1
     stp     x30, x21, [sp, #16 * 15] /* LR (x30) + SP */
+    stp     x22, x23, [sp, #16 * 16] /* ELR + SPSR on stack (context-switch safe) */
 .endm
 
 .macro EXCEPTION_RESTORE
-    ldp     x30, x21, [sp, #16 * 15]
+    ldp     x22, x23, [sp, #16 * 16] /* Restore ELR + SPSR from stack */
     msr     elr_el1, x22
     msr     spsr_el1, x23
+    ldp     x30, x21, [sp, #16 * 15]
     ldp     x0, x1, [sp, #16 * 0]
     ldp     x2, x3, [sp, #16 * 1]
     ldp     x4, x5, [sp, #16 * 2]
@@ -246,7 +257,7 @@ exception_vector_table:
     ldp     x24, x25, [sp, #16 * 12]
     ldp     x26, x27, [sp, #16 * 13]
     ldp     x28, x29, [sp, #16 * 14]
-    add     sp, sp, #(32 * 8)
+    add     sp, sp, #(34 * 8)
     eret
 .endm
 
