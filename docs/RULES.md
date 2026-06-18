@@ -43,11 +43,11 @@ shell, and ISO build system — developed and tested with AI assistance (Codebuf
   ```bash
   # Cross-compiler (mandatory for builds)
   sudo apt install -y gcc-aarch64-linux-gnu qemu-system-arm
-  
+
   # Static analysis (mandatory for code quality)
   pip3 install --break-system-packages --user flawfinder
   sudo apt install -y cppcheck
-  
+
   # Optional but recommended
   sudo apt install -y clang-tidy dosfstools
   ```
@@ -76,22 +76,22 @@ Before starting ANY task, AI agents MUST set up their sandbox:
 ```
 1. Check installed tools:
    which cppcheck flawfinder qemu-system-aarch64 aarch64-linux-gnu-gcc
-   
+
 2. Install missing tools:
    - pip3 install --break-system-packages --user flawfinder  (if missing)
    - sudo apt install -y cppcheck qemu-system-arm           (via sudo or pkexec)
-   
+
 3. Verify toolchain:
    aarch64-linux-gnu-gcc --version
    cppcheck --version
    flawfinder --version
    qemu-system-aarch64 --version
-   
+
 4. If sudo NOT available (pure sandbox):
    - pip3 install --user cppcheck (if pip version exists)
    - Document which tools are missing
    - Skip sudo-dependent tests, note limitations
-   
+
 5. Build baseline:
    make clean && make -j$(nproc)
    make run -- QEMU smoke test (timeout 15s, verify shell prompt)
