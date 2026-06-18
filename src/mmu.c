@@ -128,9 +128,9 @@ void mmu_init(void)
         u64 attr = TD_ATTR_BLOCK | TD_ATTR_AF | TD_ATTR_AP_EL1_RW;
 
         if (addr < 0x40000000UL) {
-            attr |= (MAIR_IDX_NORMAL_WB << 2);
+            attr |= (MAIR_IDX_DEVICE << 2);     /* 0x00000000: MMIO, Device-nGnRE */
         } else {
-            attr |= (MAIR_IDX_NORMAL_WB << 2);
+            attr |= (MAIR_IDX_NORMAL_WB << 2);  /* 0x40000000: RAM, Write-Back */
         }
 
         tt_l1[i] = addr | attr;

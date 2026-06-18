@@ -5,17 +5,12 @@ typedef void *EFI_HANDLE;
 struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 typedef EFI_STATUS (*EFI_TEXT_STRING)(struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *This, CHAR16 *String);
 
+/* UEFI structs: minimal definitions, preserving field offsets for ABI compatibility.
+   Only OutputString (offset +8) and ConOut (offset +64) are accessed at runtime. */
 typedef struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
-    void *Reset;
-    EFI_TEXT_STRING OutputString;
-    void *TestString;
-    void *QueryMode;
-    void *SetMode;
-    void *SetAttribute;
-    void *ClearScreen;
-    void *SetCursorPosition;
-    void *EnableCursor;
-    void *Mode;
+    void *_pad0;               /* Reset          (offset +0) */
+    EFI_TEXT_STRING OutputString; /*              (offset +8) */
+    void *_pad1[8];            /* TestString … Mode (offset +16 … +72) */
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 
 typedef struct {
@@ -27,13 +22,12 @@ typedef struct {
 } EFI_TABLE_HEADER;
 
 typedef struct {
-    EFI_TABLE_HEADER Hdr;
-    CHAR16 *FirmwareVendor;
-    unsigned int FirmwareRevision;
-    void *ConsoleInHandle;
-    void *ConIn;
-    void *ConsoleOutHandle;
-    EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *ConOut;
+    EFI_TABLE_HEADER Hdr;                      /* (offset +0) */
+    void *_pad0;                               /* FirmwareVendor   */
+    unsigned int _pad1;                        /* FirmwareRevision  */
+    unsigned int _pad2;                        /* (alignment pad)   */
+    void *_pad3[3];                            /* ConIn/Out handles */
+    EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *ConOut;    /* (offset +64)     */
 } EFI_SYSTEM_TABLE;
 
 #define EFI_SUCCESS 0

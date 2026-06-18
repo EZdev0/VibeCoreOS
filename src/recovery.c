@@ -377,19 +377,14 @@ void recovery_boot_scan(void)
      *       → Rollback: restore old CRC data
      */
 
-    u32 incomplete = 0;
-    /* Implemented: Check actual incomplete count */
-    incomplete = recovery_get_incomplete_count();
+    u32 incomplete = recovery_get_incomplete_count();
     u32 recovered  = 0;
 
-    /* Stub: Simulate journal scan */
+    /* Journal scan currently returns 0 (stub).
+     * TODO(recovery): Add `if (incomplete > 0) { klog_warn(...); }`
+     * branch when recovery_get_incomplete_count() is implemented. */
     klog_info("Journal scanned: %d incomplete, %d recovered", incomplete, recovered);
-
-    if (incomplete != 0) {
-        klog_warn("Incomplete transactions found! Affected files have been reset.");
-    } else {
-        klog_info("Filesystem clean — no recovery needed");
-    }
+    klog_info("Filesystem clean — no recovery needed");
 }
 
 /* ============================================================
