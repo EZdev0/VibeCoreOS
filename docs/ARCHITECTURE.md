@@ -217,10 +217,12 @@ boot.S (_start)
 
 | Tool | Purpose | Command |
 |------|---------|---------|
-| **cppcheck** | Bug detection, undefined behavior | `make cppcheck` |
-| **flawfinder** | Security pattern scan (CWE/SANS Top 25) | `make flawfinder` |
+| **cppcheck v2.17.1** | Bug detection, undefined behavior | `make cppcheck` |
+| **flawfinder v2.0.20** | Security pattern scan (CWE/SANS Top 25) | `make flawfinder` |
+| **GCC fanalyzer** | Deep analysis (use-after-free, overflow, NULL) | `make fanalyzer` |
 | **clang-tidy** | Code quality, CERT compliance | `make clang-tidy` |
 | **Clang SA** | Deep logic errors | `make clang-analyzer` |
+| **thinker-with-files** | Complex bug analysis (AI-assisted) | spawned as sub-agent |
 | **auth-helper** | UAC-style GUI password popup | `scripts/auth-helper.sh` |
 
 > **Note on "Fallow":** Fallow (`fallow-rs/fallow`) is a TypeScript/JavaScript codebase intelligence engine (npm). For C/embedded, equivalents are: cppcheck + flawfinder + clang-tidy + lizard + semgrep.
@@ -231,16 +233,24 @@ boot.S (_start)
 
 ### Targets
 ```
-make              → Build kernel8.img + kernel.dump (60KB)
-make run          → QEMU raspi3b (serial only)
-make run-gui      → QEMU raspi3b (GTK display)
-make debug        → QEMU with GDB server (:1234)
-make iso          → Bootable FAT32 disk image (vibecore-rpi.img, 128 MB)
+make              → Build kernel8.img + kernel.dump (62 KB)
+make run          → QEMU raspi3b (serial, -monitor none)
+make run-gui      → QEMU raspi3b (GTK display, -monitor none)
+make debug        → QEMU with GDB server (:1234, -monitor none)
+make iso          → Bootable FAT32 SD image (vibecore-rpi.img, 128 MB)
+make iso-noroot   → Rootless SD image with kernel + config + EFI stub
+make iso-verify   → Check MBR partition table + FAT32 signature
+make firmware     → Download RPi firmware (bootcode.bin, start.elf, fixup.dat)
 make install      → Flash to SD card (UAC-style auth via auth-helper.sh)
+make efi_stub     → Build BOOTAA64.EFI (UEFI diagnostic stub, PE/COFF aarch64)
 make clean        → Remove build artifacts
-make cppcheck     → Static analysis
-make flawfinder   → Security audit
-make clang-tidy   → Code quality
+make cppcheck     → Static analysis (v2.17.1)
+make flawfinder   → Security audit (v2.0.20, CWE/SANS Top 25)
+make clang-tidy   → Code quality (CERT compliance)
+make fanalyzer    → GCC deep analysis (use-after-free, NULL, overflow)
+make audit        → Full audit: cppcheck + flawfinder + fanalyzer
+make harden       → Hardened build (stack-clash-protection)
+make harden-test  → Hardened build + QEMU boot test
 make analyze      → cppcheck + flawfinder
 make help         → Show all targets
 ```
@@ -335,11 +345,20 @@ Vibe_Core_Labor/
 
 ---
 
+## UEFI Diagnostic Stub
+
+- **File**: `src/bootloader/uefi/main.c`, `Makefile.efi`
+- **Output**: `BOOTAA64.EFI` (2.088 bytes, PE/COFF aarch64)
+- **Purpose**: Let UEFI firmware (virt-manager, GNOME Boxes) find a boot entry
+- **Status**: Diagnostic only — prints message, does NOT load `kernel8.img` yet
+- **Build**: `make -f Makefile.efi` or automatically via `make iso`
+- **Image**: Included in SD image at `EFI/BOOT/BOOTAA64.EFI`
+
 ## Version History
 
 | Version | Codename | Changes |
 |---------|----------|---------|
-| 1.0.0 | Photon | Scheduler, Framebuffer, 8-subsystem Recovery, Graphical Welcome & Recovery, klog, Crash Logs, Security Hardening, 128-bit STP optimization, WFI polling, UAC auth helper, parallel build, English codebase |
+| 1.0.0 | Photon | Scheduler, Framebuffer, 8-subsystem Recovery, Graphical Welcome & Recovery, klog, Crash Logs, Security Hardening, 128-bit STP optimization, WFI polling, UAC auth helper, parallel build, English codebase, SD image rename (.iso→.rpi.img), UEFI diagnostic stub, 7 bug fixes (framebuffer, mailbox, interrupt, boot.S, allocator, STP asm), Boot Support Matrix |
 
 ---
 

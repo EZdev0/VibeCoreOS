@@ -209,9 +209,13 @@ dd if=build/vibecore-rpi.img of=/dev/mmcblk0 bs=4M status=progress
 
 2. **FAT32 is RAM-disk stub** — No SD card driver (EMMC) yet. All filesystem operations are RAM-only. Crash logs and config files are not persistent across reboots.
 
-3. **MMU is disabled** — 1GB block mappings cache MMIO addresses, breaking UART. Needs 2MB L2 table granularity for Device/MMIO separation.
+3. **MMU is disabled** — 1GB block mappings cache MMIO addresses, breaking UART. Needs 2MB L2 table granularity for Device/MMIO separation. ⚠️ **CRITICAL**: When MMU is re-enabled, the L1 table incorrectly maps 0x00000000-0x3FFFFFFF as Device memory — needs L2 tables first.
 
 4. **No watchdog timer** — Reboot command halts in WFI loop instead of triggering a hardware reset.
+
+5. **UEFI boot is diagnostic-only** — `BOOTAA64.EFI` prints a message but does not load `kernel8.img`. Full UEFI bootloader needed for VM direct boot.
+
+6. **kfree() is a no-op** — Memory allocator is linear (bump-pointer), freed memory is never reclaimed. Suitable for kernel boot but needs free-list for long-running systems.
 
 ## Parallel Build & Resource Limits
 
@@ -256,17 +260,21 @@ Status: [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workfl
 ## Quick Reference
 
 ```bash
-# Run everything
-make clean && make -j$(nproc)     # Parallel compile
-make analyze                        # cppcheck + flawfinder
-make clang-tidy                     # clang-tidy linting
+# Full build pipeline
+make clean && make -j$(nproc)     # Kernel compile
+make -f Makefile.efi               # UEFI diagnostic stub
+make firmware                       # RPi GPU firmware (one-time)
+make iso-noroot                     # SD image (128 MB, no root)
+make iso-verify                     # Verify MBR + FAT32 + partition
+make harden && make harden-test    # Hardened kernel + QEMU boot
 make run                            # QEMU smoke test
 
-# Individual tools
-cppcheck --enable=all -Iinclude src/
-flawfinder --minlevel=1 src/ include/
-clang-tidy src/*.c -- -Iinclude -nostdlib -ffreestanding
+# Individual analysis
+make cppcheck                       # Bug & UB detection
+make flawfinder                     # CWE/SANS security scan
+make fanalyzer                      # GCC deep analysis
+make audit                          # Full audit (all 3)
 
-# Build ISO for hardware
-make iso                            # build/vibecore-rpi.img (128 MB)
+# Build SD image for hardware
+make firmware && make iso-noroot   # build/vibecore-rpi.img (128 MB)
 ```

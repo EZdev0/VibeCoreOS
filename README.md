@@ -316,7 +316,25 @@ Power-On → GPU loads kernel8.img → boot.S (_start)
 
 ## 🐛 Known Bugs & Status
 
-### Recently Fixed
+### Recently Fixed (2026-06-18)
+
+| Bug | File | Fix |
+|-----|------|-----|
+| `framebuffer_fillrect` trailing pixel not drawn | `framebuffer.c` | `*(u32*)line64 = pixel` for odd-width rows |
+| Missing memory barrier after mailbox read | `mailbox.c` | Added `dmb sy` before `buffer[1]` check |
+| `snprintf_local` va_arg read 64-bit for 32-bit int | `interrupt.c` | `va_arg(args, int)` instead of `va_arg(args, i64)` |
+| ELR/SPSR not saved to stack (context-switch blocked) | `boot.S` | Extended frame 32→34 slots, `stp` at offset #16×16 |
+| BSS trailing bytes not zeroed (1-7 byte remainder) | `boot.S` | Added `strb` loop for non-8-byte-aligned BSS |
+| STP inline asm missing early-clobber constraint | `framebuffer.c` | `"+&r"` constraint on `ptr` output |
+| Allocator stats underflow in emergency mode | `allocator.c` | `total` uses `heap_limit` when emergency active |
+| `mmu.c` dead if/else (both branches set WB) | `mmu.c` | MAIR_IDX_DEVICE for MMIO, NORMAL_WB for RAM |
+| `recovery.c` dead branch (stub always returns 0) | `recovery.c` | Removed dead `if` block, added TODO |
+| EFI structs with 10+ unused named members | `uefi/main.c` | Minimized to `_pad*` arrays (ABI offsets preserved) |
+| Installer: `execvp` + `access` race condition | `installer.c` | Command whitelist + `open()` instead of `access()` |
+| SD image had misleading `.iso` extension | `Makefile` | Renamed to `build/vibecore-rpi.img` (raw SD image, NOT ISO 9660) |
+| UEFI boot path missing → VM "not bootable" | `Makefile.efi` | Added `BOOTAA64.EFI` diagnostic stub in `EFI/BOOT/` |
+
+### Recently Fixed (2026-06-15)
 
 | Bug | File | Fix |
 |-----|------|-----|
@@ -331,6 +349,7 @@ Power-On → GPU loads kernel8.img → boot.S (_start)
 | IRQ infinite loop on unknown IRQs | `interrupt.c` | Write-1-to-clear + dmb barrier |
 | `snprintf_local` buffer overflow | `interrupt.c` | `max == 0` guard before write |
 | Auth-helper terminal fallback | `auth-helper.sh` | Desktop GUI only |
+
 
 ---
 
@@ -384,6 +403,7 @@ flawfinder                     # Security scan (v2.0.20)
 
 # Optional (SD image)
 dosfstools                     # mkfs.fat
+mtools                         # mcopy, mmd (no root)
 python3                        # MBR generator
 
 # Optional (desktop auth)
@@ -435,8 +455,9 @@ zenity                         # GUI password dialog
 - **Build**: Parallel (`make -j$(nproc)`), ISO system, MBR boot code
 - **Auth**: Desktop GUI-only popup, 5-minute cache
 - **Security**: Stack protector, NULL checks, CRC32 verify, journal atomicity, stack clash protection
-- **Analysis**: cppcheck, flawfinder, GCC fanalyzer, full audit
-- **QEMU**: Direct kernel boot, ISO test, GDB debug
+- **Analysis**: cppcheck v2.17.1, flawfinder v2.0.20, GCC fanalyzer, full audit
+- **QEMU**: Direct kernel boot, ISO test, GDB debug, `-monitor none` on all targets
+- **UEFI**: Diagnostic stub (`BOOTAA64.EFI`), `EFI/BOOT/` on SD image, PE/COFF aarch64
 
 ---
 

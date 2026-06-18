@@ -246,10 +246,21 @@ make debug            # GDB debug server (:1234)
 | 2 | No EMMC/SD driver | `fs.c` | HIGH |
 | 3 | No USB driver | — | MEDIUM |
 | 4 | UEFI boot limited to diagnostic stub (no kernel loading yet) | `src/bootloader/uefi/` | MEDIUM |
-| 5 | `va_arg` type mismatch (`snprintf_local`) | `interrupt.c` | MEDIUM |
+| 5 | ~~`va_arg` type mismatch (`snprintf_local`)~~ → **FIXED 2026-06-18** | `interrupt.c` | — |
 | 6 | Missing prototypes | `boot_anim.c`, `crashlog.c` | LOW |
 | 7 | Precision loss gradient | `boot_anim.c` | LOW |
 | 8 | Sign change in crashlog | `crashlog.c` | LOW |
+
+### Recently Fixed (2026-06-18)
+| Bug | Fix |
+|-----|-----|
+| `framebuffer_fillrect` trailing pixel | `*(u32*)line64 = pixel` after 64-bit loop |
+| Missing memory barrier after mailbox_read() | `dmb sy` before `buffer[1]` check |
+| `snprintf_local` va_arg 64-bit for 32-bit int | `va_arg(args, int)` sign-extended to i64 |
+| ELR/SPSR not on stack (context-switch blocked) | Stack frame 32→34 slots, ELR/SPSR at offset #16×16 |
+| BSS trailing bytes (1-7) not zeroed | `strb` loop for non-8-byte-aligned remainder |
+| STP inline asm register aliasing risk | Early-clobber `"+&r"` on ptr output |
+| Allocator stats underflow in emergency mode | `total` uses `heap_limit` when emergency active |
 
 ### Recently Fixed (2026-06-15)
 | Bug | Fix |
@@ -301,7 +312,7 @@ make debug            # GDB debug server (:1234)
 
 ---
 
-_Jules Rules v3.0 — June 15, 2026 — VibeCore Labs_
+_Jules Rules v4.0 — June 18, 2026 — VibeCore Labs_
 
 ## 🛡️ Extended AI Directives (Emulation, Fallbacks & Strict Analysis)
 
