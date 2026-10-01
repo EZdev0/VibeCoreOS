@@ -271,7 +271,7 @@ iso-full: all iso-check efi_stub
 	@fdisk -l $(ISO_IMG) 2>/dev/null | grep -E "Disklabel|$(ISO_IMG)|Boot" | awk '{printf "  │  %-42s │\n", substr($$0,1,42)}'
 	@echo "  │  MBR:      Boot-Code aktiv                  │"
 	@echo "  │  ⚠️ VM-Boot: Not for VM direct boot        │"
-	@echo "  │  💻 Verwende: make run (QEMU direkt)        │"
+	@echo "  │  💻 Use: make run (QEMU direct)        │"
 	@echo "  └─────────────────────────────────────────────┘"
 	@echo ""
 	@echo "  ✅ Full bootable image created! ($(ISO_SIZE) MB)"
@@ -321,9 +321,9 @@ iso-noroot: all iso-check-tools efi_stub
 	@echo "  │  $(ISO_IMG)  │"
 	@ls -lh $(ISO_IMG) | awk '{printf "  │  Size:     %-30s │\n", $$5}'
 	@fdisk -l $(ISO_IMG) 2>/dev/null | grep -E "Disklabel|$(ISO_IMG)|Boot" | awk '{printf "  │  %-42s │\n", substr($$0,1,42)}'
-	@echo "  │  MBR:      Diagnose-Hinweis, kein BIOS-Boot │"
+	@echo "  │  MBR:      Diagnostic note, no BIOS boot │"
 	@echo "  │  Files:    kernel8.img + config + EFI stub  │"
-	@echo "  │  💻 Verwende: make run (QEMU direkt)        │"
+	@echo "  │  💻 Use: make run (QEMU direct)        │"
 	@echo "  └─────────────────────────────────────────────┘"
 	@echo ""
 	@echo "  ✅ Rootless SD image created! ($(ISO_SIZE) MB)"

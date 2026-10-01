@@ -178,7 +178,9 @@ jobs:
             qemu-system-aarch64 \
             gcc-aarch64-linux-gnu \
             binutils-aarch64-linux-gnu \
-            dosfstools
+            dosfstools \
+            mtools \
+            util-linux
 
       - name: 🧪 QEMU Boot Test
         timeout-minutes: 2
@@ -225,16 +227,16 @@ jobs:
       - name: 🔍 Verify ISO
         run: |
           echo "ISO file:"
-          ls -lh build/vibecore.iso
+          ls -lh build/vibecore-rpi.img
           echo ""
           echo "File type:"
-          file build/vibecore.iso
+          file build/vibecore-rpi.img
           echo ""
           echo "Partition table:"
-          fdisk -l build/vibecore.iso 2>/dev/null || true
+          fdisk -l build/vibecore-rpi.img 2>/dev/null || true
           echo ""
           echo "FAT32 signature:"
-          SIG=$(dd if=build/vibecore.iso bs=1 skip=$((2048*512+82)) count=8 2>/dev/null)
+          SIG=$(dd if=build/vibecore-rpi.img bs=1 skip=$((2048*512+82)) count=8 2>/dev/null)
           if echo "$SIG" | grep -q "FAT32"; then
             echo "  ✅ FAT32 signature valid"
           else
@@ -247,7 +249,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vibecore-iso
-          path: build/vibecore.iso
+          path: build/vibecore-rpi.img
           retention-days: 30
 
       - name: Fallback to GitHub Release for ISO
@@ -255,5 +257,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: fallback-release-${{ github.sha }}
-          files: build/vibecore.iso
+          files: build/vibecore-rpi.img
           name: Fallback Release ${{ github.sha }}
