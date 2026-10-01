@@ -10,7 +10,7 @@
 - **Kernel Size**: ~62 KB
 - **Memory Budget**: 1 MB heap + 64 KB emergency reserve + 128 KB stack
 - **Toolchain**: `aarch64-linux-gnu-gcc`, `as`, `ld`
-- **Licence**: Proprietary (VibeCore Labs)
+- **Licence**: Open Source (GPL-3.0)
 
 ---
 

@@ -21,7 +21,7 @@ to work correctly, safely, and efficiently on the VibeCore OS project.
 | **Emulator** | QEMU `raspi3b`, Cortex-A53 |
 | **Static analysis** | cppcheck v2.17.1 + flawfinder v2.0.20 + GCC fanalyzer |
 | **CI/CD** | GitHub Actions `.github/workflows/build.yml` |
-| **Repo** | 🔒 Private: `github.com/JONIMONI09/VibeCoreOS` |
+| **Repo** | 🔓 Public: `github.com/JONIMONI09/VibeCoreOS` |
 
 ---
 

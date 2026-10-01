@@ -463,4 +463,4 @@ zenity                         # GUI password dialog
 
 ## 📄 License
 
-Proprietary — VibeCore Labs.
+Open Source (GPL-3.0) — VibeCore Labs.
