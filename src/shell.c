@@ -356,7 +356,8 @@ static void shell_cmd_reboot(void)
 
     /* Watchdog reboot or reset vector */
     uart_puts("  Reboot: Watchdog reset...\n");
-    /* TODO: Watchdog timer for real reboot */
+    *PM_WDOG = PM_PASSWORD | 1;
+    *PM_RSTC = PM_PASSWORD | PM_RSTC_FULL_RESET;
     while (1) { asm volatile("wfi"); }
 }
 
