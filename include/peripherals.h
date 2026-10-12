@@ -136,6 +136,20 @@
 #endif /* !VIRT */
 
 /* ────────────────────────────────────────────────────────────
+ *  Power Management / Watchdog
+ * ──────────────────────────────────────────────────────────── */
+
+#if 1
+#define PM_BASE             (MMIO_BASE + 0x00100000)
+
+#define PM_RSTC             ((volatile u32*)(PM_BASE + 0x1C))
+#define PM_WDOG             ((volatile u32*)(PM_BASE + 0x24))
+
+#define PM_PASSWORD         0x5A000000
+#define PM_RSTC_FULL_RESET  0x00000020
+#endif
+
+/* ────────────────────────────────────────────────────────────
  *  System Timer
  * ──────────────────────────────────────────────────────────── */
 
