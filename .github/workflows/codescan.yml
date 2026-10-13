@@ -28,59 +28,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Export Java 17 without replacing PATH
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          test -n "${JAVA_HOME_17_X64:-}"
-          test -x "${JAVA_HOME_17_X64}/bin/java"
-
-          # setup-java's Java 17 installation is made available to all
-          # subsequent steps. GITHUB_PATH prepends only this directory and
-          # preserves the runner's standard tools such as dirname and basename.
-          echo "JAVA_HOME=${JAVA_HOME_17_X64}" >> "${GITHUB_ENV}"
-          echo "${JAVA_HOME_17_X64}/bin" >> "${GITHUB_PATH}"
-
-          echo "JAVA_HOME=${JAVA_HOME_17_X64}"
-          echo "PATH=${JAVA_HOME_17_X64}/bin:${PATH}"
-          command -v java
-          command -v dirname
-          command -v basename
-          java -version
-
-      - name: Verify Java 17 in a new step
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          test "$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2}')" = "17"
-          test "$(command -v dirname)" != ""
-          test "$(command -v basename)" != ""
-          java -version
-
-      - name: Cache SonarScanner
+      - name: Cache CodeScan scanner
         uses: actions/cache@v4
         with:
           path: ~/.sonar
-          key: ${{ runner.os }}-sonar-java17-v5
+          key: ${{ runner.os }}-codescan-scanner-v2
           restore-keys: |
-            ${{ runner.os }}-sonar-java17-
+            ${{ runner.os }}-codescan-scanner-
 
-      - name: Run Analysis
-        uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
+      - name: Run CodeScan analysis
+        uses: codescan-io/codescan-scanner-action@master
         with:
           login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
           organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
           projectKey: ${{ secrets.CODESCAN_PROJECT_KEY }}
+          generateReportFile: true
+          generateSarifFile: false
 
       - name: Upload SARIF file
+        if: always() && hashFiles('codescan.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: codescan.sarif
