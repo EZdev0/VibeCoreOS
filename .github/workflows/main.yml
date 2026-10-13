@@ -1,0 +1,2 @@
+- name: reviewdog-suggester: Suggest any code changes based on diff with reviewdog
+  uses: reviewdog/action-suggester@v1.26.2
