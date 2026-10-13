@@ -34,10 +34,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # setup-java exposes the selected installation as JAVA_HOME_17_X64.
-      # Use that variable directly instead of resolving `java` from PATH,
-      # because the runner may still resolve the preinstalled Java 11 first.
-      - name: Select Java 17 explicitly
+      - name: Export Java 17 without replacing PATH
         shell: bash
         run: |
           set -euo pipefail
@@ -45,39 +42,39 @@ jobs:
           test -n "${JAVA_HOME_17_X64:-}"
           test -x "${JAVA_HOME_17_X64}/bin/java"
 
+          # setup-java's Java 17 installation is made available to all
+          # subsequent steps. GITHUB_PATH prepends only this directory and
+          # preserves the runner's standard tools such as dirname and basename.
           echo "JAVA_HOME=${JAVA_HOME_17_X64}" >> "${GITHUB_ENV}"
           echo "${JAVA_HOME_17_X64}/bin" >> "${GITHUB_PATH}"
 
-          echo "Selected Java: ${JAVA_HOME_17_X64}"
-          "${JAVA_HOME_17_X64}/bin/java" -version
+          echo "JAVA_HOME=${JAVA_HOME_17_X64}"
+          echo "PATH=${JAVA_HOME_17_X64}/bin:${PATH}"
+          command -v java
+          command -v dirname
+          command -v basename
+          java -version
 
-      - name: Verify Java used by the next step
+      - name: Verify Java 17 in a new step
         shell: bash
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: |
           set -euo pipefail
-          export PATH="${JAVA_HOME}/bin:${PATH}"
+
           test "$(java -version 2>&1 | awk -F'[\".]' '/version/ {print $2}')" = "17"
-          command -v java
+          test "$(command -v dirname)" != ""
+          test "$(command -v basename)" != ""
           java -version
 
       - name: Cache SonarScanner
         uses: actions/cache@v4
         with:
           path: ~/.sonar
-          key: ${{ runner.os }}-sonar-java17-v4
+          key: ${{ runner.os }}-sonar-java17-v5
           restore-keys: |
             ${{ runner.os }}-sonar-java17-
 
       - name: Run Analysis
         uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
-        env:
-          # This is the critical fix. Do not rely on the generic JAVA_HOME
-          # or the runner PATH; pass setup-java's Java 17 installation to the
-          # Node action explicitly.
-          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-          PATH: ${{ env.JAVA_HOME_17_X64 }}/bin:${{ env.PATH }}
         with:
           login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
           organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
