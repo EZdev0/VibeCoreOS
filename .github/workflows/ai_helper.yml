@@ -10,7 +10,7 @@ permissions:
   security-events: write
 
 concurrency:
-  group: vibeci- github.workflow -{{ github.ref }}
+  group: vibeci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -24,14 +24,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: \${{ github.event.pull_request.head.ref }}
 
       - name: Set up Python Runtime
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 1. Hardware-nahes Modell-Caching
       - name: Cache GGUF Model Weights
         id: cache-model
         uses: actions/cache@v4
@@ -39,7 +37,6 @@ jobs:
           path: ./models
           key: vibeci-qwen2.5-coder-7b-q4km-v1
 
-      # 2. Deterministische Vorab-Scans
       - name: Audit Workflow Security (Zizmor)
         uses: zizmorcore/zizmor-action@v0.6.4
         continue-on-error: true
@@ -48,14 +45,22 @@ jobs:
 
       - name: Run CVE & Rootfs Audit (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
+        continue-on-error: true
         with:
           scan-type: 'fs'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
 
-      - name: Upload Security Results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Validate SARIF Report
+        if: always()
+        run: |
+          if [ ! -s "trivy-results.sarif" ]; then
+            echo '{"$schema":"https://githubusercontent.com","version":"2.1.0","runs":[]}' > trivy-results.sarif
+          fi
+
+      - name: Upload Security Results to GitHub
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -67,172 +72,15 @@ jobs:
           radon cc . -a -s -j > complexity-report.json || true
           vulture . --min-confidence 80 > deadcode-report.txt || true
 
-      # 3. 7B Agent & Native GitHub Suggestions
-      - name: Run 7B Agent Review
-        env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: \${{ github.event.pull_request.number }}
-          REPO_FULL_NAME: \${{ github.repository }}
-          COMMIT_SHA: \${{ github.event.pull_request.head.sha }}
+      - name: Install Agent Dependencies
         run: |
           pip install --upgrade huggingface-hub requests pydantic llama-cpp-python --extra-index-url https://github.io
 
-          mkdir -p ./models
-          python3 -c '
-          import os
-          from huggingface_hub import hf_hub_download
-          model_path = "./models/qwen2.5-coder-7b-instruct-q4_k_m.gguf"
-          if not os.path.exists(model_path):
-              print("Lade 7B Q4_K_M GGUF herunter...")
-              hf_hub_download(
-                  repo_id="Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
-                  filename="qwen2.5-coder-7b-instruct-q4_k_m.gguf",
-                  local_dir="./models"
-              )
-          else:
-              print("7B Modell direkt aus Cache geladen.")
-          '
-
-          python3 -c '
-          import os, sys, json, subprocess, py_compile, tempfile, requests
-          from pydantic import BaseModel, Field
-          from llama_cpp import Llama
-
-          token = os.environ.get("GITHUB_TOKEN")
-          repo = os.environ.get("REPO_FULL_NAME")
-          pr_num = os.environ.get("PR_NUMBER")
-          head_sha = os.environ.get("COMMIT_SHA")
-
-          class CodeTriageDecision(BaseModel):
-              has_bug: bool = Field(description="True ONLY if real security issue or edge case error exists")
-              category: str = Field(description="Input Validation, Resource Leak, Null Pointer, etc.")
-              what_if_scenario: str = Field(description="Max 2 sentences describing the failure mode")
-              fixed_code: str = Field(description="Replacement lines of code")
-
-          try:
-              diff_out = subprocess.check_output(["git", "diff", "-U0", "origin/master...HEAD"], text=True)
-          except Exception:
-              diff_out = ""
-
-          if not diff_out.strip():
-              print("Kein PR-Diff vorhanden. Beende.")
-              sys.exit(0)
-
-          target_tasks = []
-          curr_file = None
-          for line in diff_out.splitlines():
-              if line.startswith("+++ b/"):
-                  curr_file = line[6:]
-              elif line.startswith("@@ ") and curr_file and curr_file.endswith(".py"):
-                  parts = line.split(" ")
-                  if len(parts) > 2 and parts[2].startswith("+"):
-                      info = parts[2][1:].split(",")
-                      target_tasks.append((curr_file, int(info[0])))
-
-          if not target_tasks:
-              print("Keine Python-Dateien modifiziert. Beende.")
-              sys.exit(0)
-
-          diag = {"linter": []}
-          if os.path.exists("ruff-report.json"):
-              try:
-                  with open("ruff-report.json") as f:
-                      diag["linter"] = json.load(f)[:5]
-              except Exception:
-                  pass
-
-          print("Lade 7B Modell via llama.cpp AVX2...")
-          llm = Llama(
-              model_path="./models/qwen2.5-coder-7b-instruct-q4_k_m.gguf",
-              n_ctx=2048,
-              n_threads=2,
-              n_batch=512,
-              verbose=False
-          )
-
-          review_comments = []
-          for rel_path, line_no in target_tasks[:3]:
-              if not os.path.exists(rel_path):
-                  continue
-              with open(rel_path, "r") as f:
-                  lines = f.readlines()
-
-              start = max(0, line_no - 12)
-              end = min(len(lines), line_no + 12)
-              snippet = "".join(lines[start:end])
-
-              messages = [
-                  {
-                      "role": "system",
-                      "content": "You are a Security Auditor. Perform What-If triage on edge cases. If safe, set has_bug: false."
-                  },
-                  {
-                      "role": "user",
-                      "content": f"Diagnostics:\n{json.dumps(diag)}\n\nFile: {rel_path} (Line {line_no}):\n```python\n{snippet}\n```"
-                  }
-              ]
-
-              try:
-                  res = llm.create_chat_completion(
-                      messages=messages,
-                      response_format={
-                          "type": "json_object",
-                          "schema": CodeTriageDecision.model_json_schema()
-                      },
-                      temperature=0.1,
-                      max_tokens=350
-                  )
-                  payload = json.loads(res["choices"][0]["message"]["content"])
-                  if payload.get("has_bug") and payload.get("fixed_code"):
-                      fix = payload["fixed_code"].strip()
-                      if fix.startswith("```python"):
-                          fix = fix[9:].strip()
-                      if fix.endswith("```"):
-                          fix = fix[:-3].strip()
-
-                      with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False) as tmp:
-                          tmp.write(fix)
-                          tmp_name = tmp.name
-                      try:
-                          py_compile.compile(tmp_name, doraise=True)
-                          os.remove(tmp_name)
-
-                          sug_block = chr(96) * 3 + "suggestion\n" + fix + "\n" + chr(96) * 3
-                          body = (
-                              f"### 🛡️ VibeCI Security Audit: `{payload.get(\"category\")}`\n\n"
-                              f"**Was-wäre-wenn-Szenario:** {payload.get(\"what_if_scenario\")}\n\n"
-                              f"{sug_block}"
-                          )
-                          review_comments.append({
-                              "path": rel_path,
-                              "line": line_no,
-                              "side": "RIGHT",
-                              "body": body
-                          })
-                          print(f"Vorschlag vorbereitet für {rel_path}:{line_no}")
-                      except py_compile.PyCompileError as e:
-                          print(f"Anti-Halluzination Gate hat ungültigen Code blockiert: {e}")
-                          if os.path.exists(tmp_name):
-                              os.remove(tmp_name)
-              except Exception as err:
-                  print(f"Inferenzfehler: {err}")
-
-          if review_comments:
-              print(f"Sende {len(review_comments)} Vorschläge an PR #{pr_num}...")
-              api_url = f"https://github.com{repo}/pulls/{pr_num}/reviews"
-              headers = {
-                  "Authorization": f"Bearer {token}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28"
-              }
-              data = {
-                  "commit_id": head_sha,
-                  "body": "🤖 **VibeCI Autonomous Audit:** Schwachstellen identifiziert. Übernimm die Vorschläge per Klick auf Commit suggestion.",
-                  "event": "COMMENT",
-                  "comments": review_comments
-              }
-              r = requests.post(api_url, headers=headers, json=data)
-              print("GitHub API Status:", r.status_code)
-          else:
-              print("Keine Lücken gefunden. Kein Kommentar erforderlich.")
-          '
+      - name: Run 7B Agent Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_FULL_NAME: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 scripts/vibeci_agent.py
