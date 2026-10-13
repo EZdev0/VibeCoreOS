@@ -1,0 +1,120 @@
+name: AI Logic & Security PR Suggester
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  ai-review-and-suggest:
+    name: Local AI Audit & Suggest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # PHASE 1: Pre-Scan & Diagnose (Deterministische Vorarbeit)
+      - name: Run Deterministic Pre-Scans
+        run: |
+          pip install --upgrade ruff
+          ruff check . --output-format=json > ruff-results.json || true
+
+      - name: Run Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      # PHASE 2: Eingebettetes Python-Skript (AirLLM + Qwen Tooling)
+      - name: Execute Embedded AI Logic Agent
+        run: |
+          pip install --upgrade airllm torch transformers accelerate
+
+          python3 - << 'EOF'
+          import os
+          import json
+          import subprocess
+          from airllm import AutoModel
+
+          # 1. Tool-Funktionen: Diagnosen und Diff laden
+          def get_git_diff():
+              try:
+                  diff = subprocess.check_output(["git", "diff", "origin/master...HEAD"], text=True)
+                  return diff if diff.strip() else subprocess.check_output(["git", "diff", "HEAD~1"], text=True)
+              except Exception:
+                  return ""
+
+          def get_diagnostics():
+              diag = {}
+              if os.path.exists("ruff-results.json"):
+                  try:
+                      with open("ruff-results.json") as f:
+                          diag["ruff"] = json.load(f)[:5]
+                  except Exception:
+                      pass
+              return json.dumps(diag)[:1500]
+
+          diff_text = get_git_diff()
+          if not diff_text.strip():
+              print("Kein geändertes Code-Diff im PR vorhanden. Beende Job.")
+              exit(0)
+
+          # 2. Modell laden (CPU-kompatibel via AirLLM)
+          model_id = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+          print(f"Lade lokales Modell {model_id}...")
+          model = AutoModel.from_pretrained(model_id, device="cpu")
+
+          prompt = f"""<|im_start|>system
+          Du bist ein autonomer Code-Auditor für VibeCoreOS. Analysiere das Git-Diff und die Scan-Diagnosen.
+          Wenn du einen echten Logikfehler, Speicherleck oder Syntaxfehler findest, gib die Korrektur zwingend als saubere Code-Zeile aus.
+          <|im_end|>
+          <|im_start|>user
+          Diagnose: {get_diagnostics()}
+          Diff:
+          {diff_text}
+
+          Korrigiere den Code, falls Fehler existieren.
+          <|im_end|>
+          <|im_start|>assistant
+          """
+
+          # 3. Layer-by-Layer Inferenz ausführen
+          tokens = model.tokenizer([prompt], return_tensors="pt", truncation=True, max_length=2048)
+          output = model.generate(tokens["input_ids"], max_new_tokens=512, use_cache=True, return_dict_in_generate=True)
+          result = model.tokenizer.decode(output.sequences[0])
+
+          # 4. Standardisiertes Formatieren & Validieren
+          subprocess.run(["ruff", "check", "--fix", "."], check=False)
+          subprocess.run(["ruff", "format", "."], check=False)
+          print("Lokale Analyse und Formatierung erfolgreich abgeschlossen.")
+          EOF
+
+      # PHASE 3: Autonome Vorschläge in den PR schreiben
+      - name: Suggest Changes via Reviewdog
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: AI-PR-Auditor
+          filter_mode: diff_context
+          fail_on_error: false
