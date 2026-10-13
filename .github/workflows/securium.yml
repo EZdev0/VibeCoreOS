@@ -1,0 +1,62 @@
+name: PR Deep Audit & Autofix Suggester
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # 1. Dateisystem-, Kernel- & Rootfs-Sicherheit (Trivy)
+  trivy-security-audit:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # 2. Autonome Codekorrektur & Reviewdog PR-Vorschläge
+  code-autofix-suggest:
+    name: Ruff Quality & Auto-Suggest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code (PR Head)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run Ruff Autofix
+        run: |
+          pip install --upgrade ruff
+          ruff check --fix . || true
+          ruff format . || true
+
+      - name: Post Suggestions to PR
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: RuffAutoFix
+          filter_mode: diff_context
+          fail_on_error: false
