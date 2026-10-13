@@ -20,31 +20,36 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # 1. Checkout mit festem Commit-SHA (actions/checkout)
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
+      # 2. Python Setup mit festem Commit-SHA (actions/setup-python)
       - name: Set up Python Runtime
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: '3.11'
 
+      # 3. Model Weight Caching mit festem Commit-SHA (actions/cache)
       - name: Cache GGUF Model Weights
         id: cache-model
-        uses: actions/cache@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510d2b70f44e5f # v4.2.2
         with:
           path: ./models
           key: vibeci-qwen2.5-coder-7b-q4km-v1
 
+      # 4. Workflow Security Audit mit festem Commit-SHA (zizmor-action)
       - name: Audit Workflow Security (Zizmor)
-        uses: zizmorcore/zizmor-action@v0.6.4
+        uses: zizmorcore/zizmor-action@c2195f2d65d4bb3fd8fd309228833cb35ddc2bf2 # v0.6.4
         continue-on-error: true
         with:
           advanced-security: true
 
+      # 5. CVE Scan mit verifiziertem, sicherem Commit-SHA (aquasecurity/trivy-action)
       - name: Run CVE & Rootfs Audit (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         continue-on-error: true
         with:
           scan-type: 'fs'
@@ -52,19 +57,21 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
 
+      # 6. SARIF Validierung und Upload via festem CodeQL-Commit-SHA
       - name: Validate SARIF Report
         if: always()
         run: |
           if [ ! -s "trivy-results.sarif" ]; then
-            echo '{"$schema":"https://githubusercontent.com","version":"2.1.0","runs":[]}' > trivy-results.sarif
+            echo '{"$schema":"https://githubusercontent.com","version":"2.1.0","runs":}' > trivy-results.sarif
           fi
 
       - name: Upload Security Results to GitHub
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@df409f7d9260372bd5f19e5b04e83ce3c4fb4d4c # v3/v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
 
+      # 7. Statische Code-Diagnostik
       - name: Run Static Code Diagnostics
         run: |
           pip install --upgrade ruff radon vulture
@@ -72,10 +79,12 @@ jobs:
           radon cc . -a -s -j > complexity-report.json || true
           vulture . --min-confidence 80 > deadcode-report.txt || true
 
+      # 8. Abhängigkeiten für den lokalen Agenten
       - name: Install Agent Dependencies
         run: |
           pip install --upgrade huggingface-hub requests pydantic llama-cpp-python --extra-index-url https://github.io
 
+      # 9. Ausführung des Agenten-Skripts
       - name: Run 7B Agent Review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
