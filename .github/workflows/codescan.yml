@@ -23,9 +23,9 @@ permissions:
 jobs:
   CodeScan:
     permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+      contents: read
+      security-events: write
+      actions: read
     runs-on: ubuntu-latest
 
     steps:
@@ -38,16 +38,36 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # The CodeScan action is a Node action and its embedded scanner may not
+      # inherit the Java selection reliably. Export the resolved Java 17 path
+      # explicitly so the scanner cannot fall back to Java 11.
+      - name: Force CodeScan to use Java 17
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          JAVA17_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+
+          echo "JAVA_HOME=${JAVA17_HOME}" >> "${GITHUB_ENV}"
+          echo "${JAVA17_HOME}/bin" >> "${GITHUB_PATH}"
+
+          echo "Using Java at: ${JAVA17_HOME}"
+          "${JAVA17_HOME}/bin/java" -version
+
       - name: Cache files
         uses: actions/cache@v4
         with:
           path: ~/.sonar
-          key: ${{ runner.os }}-sonar-java17
+          key: ${{ runner.os }}-sonar-java17-v2
           restore-keys: |
+            ${{ runner.os }}-sonar-java17-
             ${{ runner.os }}-sonar-
 
       - name: Run Analysis
         uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+          PATH: ${{ env.JAVA_HOME }}/bin:${{ env.PATH }}
         with:
           login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
           organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
