@@ -2,7 +2,7 @@
 
 [![Build & Test](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml/badge.svg)](https://github.com/JONIMONI09/VibeCoreOS/actions/workflows/build.yml)
 
-**Bare-metal ARM64 operating system for Raspberry Pi 3B/4B** — built entirely from scratch in C and ARMv8 Assembly. No Linux kernel, no userspace, no external dependencies. Just pure bare-metal code, running directly on the Cortex-A53/A72. 
+**Bare-metal ARM64 operating system for Raspberry Pi 3B/4B** — built entirely from scratch in C and ARMv8 Assembly. No Linux kernel, no userspace, no external dependencies. Just pure bare-metal code, running directly on the Cortex-A53/A72.
 
 ```
 ╔══════════════════════════════════════════════════╗
